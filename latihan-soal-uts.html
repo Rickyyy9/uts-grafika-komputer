@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Latihan Soal UTS — Grafika Komputer (OpenGL)</title>
+<style>
+:root{
+  --bg:#0A0E1A; --surface:#121829; --surface2:#1B2338;
+  --primary:#4F8CFF; --cyan:#22D3EE; --green:#34D399; --amber:#FBBF24; --red:#F87171;
+  --text:#E8ECF7; --muted:#8B95B2;
+  --grad:linear-gradient(135deg,#4F8CFF,#22D3EE);
+  --mono:'JetBrains Mono','Consolas',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background:
+    radial-gradient(circle at 12% 8%, rgba(79,140,255,.10), transparent 40%),
+    radial-gradient(circle at 90% 90%, rgba(34,211,238,.08), transparent 42%),
+    var(--bg);
+  color:var(--text);
+  font-family:'Inter','Segoe UI',system-ui,sans-serif;
+  line-height:1.6;
+  padding:28px 18px 80px;
+}
+.wrap{max-width:920px;margin:0 auto;}
+header{text-align:center;margin-bottom:26px;}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--cyan);}
+h1{font-size:clamp(24px,4.5vw,40px);background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin:6px 0;}
+.sub{color:var(--muted);font-size:14px;}
+
+/* Toolbar */
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:18px 0 26px;}
+.tbtn{
+  font-size:13px;padding:9px 16px;border-radius:999px;border:1px solid rgba(79,140,255,.3);
+  background:rgba(79,140,255,.10);color:var(--text);cursor:pointer;transition:.2s;font-family:inherit;
+}
+.tbtn:hover{background:rgba(79,140,255,.32);}
+.tbtn.active{background:var(--grad);color:#04121f;font-weight:700;border-color:transparent;}
+
+/* Progress */
+.scorebar{
+  position:sticky;top:0;z-index:50;
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+  background:rgba(18,24,41,.9);backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,.08);border-radius:14px;
+  padding:10px 16px;margin-bottom:22px;font-size:13px;font-family:var(--mono);
+}
+.scorebar .val{color:var(--cyan);font-weight:700;}
+
+/* Section */
+.section{margin:30px 0 12px;padding-top:8px;border-top:1px dashed rgba(255,255,255,.10);}
+.section h2{font-size:clamp(16px,2.4vw,21px);color:#fff;}
+.section .section-sub{color:var(--muted);font-size:12.5px;font-family:var(--mono);}
+
+/* Question card */
+.q{
+  background:linear-gradient(160deg,var(--surface2),var(--surface));
+  border:1px solid rgba(255,255,255,.07);border-radius:16px;
+  padding:20px 22px;margin:16px 0;position:relative;overflow:hidden;
+  transition:.25s;
+}
+.q::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--grad);}
+.q:hover{border-color:rgba(79,140,255,.28);}
+.qhead{display:flex;gap:12px;align-items:flex-start;margin-bottom:14px;}
+.qnum{
+  flex:0 0 auto;width:34px;height:34px;border-radius:10px;background:rgba(79,140,255,.14);
+  border:1px solid rgba(79,140,255,.3);display:grid;place-items:center;
+  font-weight:700;font-size:14px;color:var(--cyan);font-family:var(--mono);
+}
+.qtext{font-size:clamp(14px,1.7vw,16.5px);font-weight:600;color:#fff;padding-top:4px;}
+.qtext .tag{font-size:11px;font-family:var(--mono);color:var(--amber);font-weight:600;display:block;margin-bottom:4px;letter-spacing:.06em;}
+pre{font-family:var(--mono);font-size:clamp(11px,1.3vw,13px);background:#070B14;border:1px solid rgba(79,140,255,.18);border-radius:10px;padding:12px 14px;overflow-x:auto;margin:8px 0;color:#C7D2E8;white-space:pre;}
+
+/* Options */
+.opts{display:flex;flex-direction:column;gap:9px;}
+.opt{
+  display:flex;gap:11px;align-items:flex-start;
+  padding:11px 14px;border-radius:11px;cursor:pointer;
+  border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.02);
+  transition:.18s;font-size:14.5px;
+}
+.opt:hover{background:rgba(79,140,255,.10);border-color:rgba(79,140,255,.3);}
+.opt .k{
+  flex:0 0 auto;width:24px;height:24px;border-radius:7px;background:rgba(255,255,255,.08);
+  display:grid;place-items:center;font-size:12px;font-weight:700;font-family:var(--mono);color:var(--muted);
+}
+.opt.correct{background:rgba(52,211,153,.16);border-color:rgba(52,211,153,.55);}
+.opt.correct .k{background:var(--green);color:#052e22;}
+.opt.wrong{background:rgba(248,113,113,.14);border-color:rgba(248,113,113,.5);}
+.opt.wrong .k{background:var(--red);color:#3d0a0a;}
+.opt.disabled{pointer-events:none;opacity:.85;}
+
+/* Refresh/self-check true-false & short */
+.tf-btns{display:flex;gap:10px;}
+.tf-btn{
+  flex:1;padding:11px;border-radius:11px;border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.03);color:var(--text);cursor:pointer;font-family:inherit;
+  font-size:14px;font-weight:600;transition:.18s;
+}
+.tf-btn:hover{background:rgba(79,140,255,.12);}
+.tf-btn.correct{background:rgba(52,211,153,.18);border-color:rgba(52,211,153,.55);}
+.tf-btn.wrong{background:rgba(248,113,113,.15);border-color:rgba(248,113,113,.5);}
+
+.explain{
+  margin-top:12px;padding:12px 15px;border-radius:11px;
+  background:rgba(34,211,238,.07);border:1px solid rgba(34,211,238,.22);
+  font-size:13.5px;color:#CFE6F2;display:none;
+}
+.explain.show{display:block;animation:fade .3s ease;}
+.explain b{color:var(--cyan);}
+.explain .why{color:var(--muted);}
+@keyframes fade{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+
+.short-answer{
+  margin-top:12px;font-size:14px;color:#CFE6F2;
+}
+.reveal-btn{
+  font-size:12.5px;padding:7px 14px;border-radius:9px;border:1px dashed rgba(251,191,36,.5);
+  background:rgba(251,191,36,.08);color:var(--amber);cursor:pointer;font-family:inherit;font-weight:600;
+}
+.reveal-btn:hover{background:rgba(251,191,36,.18);}
+.reveal-answer{display:none;margin-top:10px;padding:12px 15px;border-radius:11px;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.25);color:#D6F5E8;font-size:13.5px;}
+.reveal-answer.show{display:block;animation:fade .3s ease;}
+
+/* Essay answer box */
+.essay-label{font-size:12px;color:var(--muted);font-family:var(--mono);margin:12px 0 6px;display:block;letter-spacing:.04em;}
+.essay-box{
+  width:100%;min-height:88px;resize:vertical;
+  background:#070B14;border:1px solid rgba(79,140,255,.28);border-radius:11px;
+  padding:12px 14px;color:var(--text);font-family:var(--font-body,'Inter',sans-serif);
+  font-size:14px;line-height:1.55;outline:none;transition:.18s;
+}
+.essay-box::placeholder{color:#4B5574;}
+.essay-box:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(34,211,238,.12);}
+.essay-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center;}
+.essay-status{font-size:12px;font-family:var(--mono);color:var(--muted);}
+.essay-status.saved{color:var(--green);}
+.grade-btns{display:none;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.grade-btns.show{display:flex;animation:fade .3s ease;}
+.grade-btn{
+  font-size:12.5px;padding:8px 14px;border-radius:9px;cursor:pointer;font-family:inherit;font-weight:600;
+  border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);color:var(--text);transition:.18s;
+}
+.grade-btn.salah{border-color:rgba(248,113,113,.5);color:var(--red);}
+.grade-btn.salah:hover{background:rgba(248,113,113,.16);}
+.grade-btn.benar{border-color:rgba(52,211,153,.5);color:var(--green);}
+.grade-btn.benar:hover{background:rgba(52,211,153,.16);}
+.grade-btn:disabled{opacity:.5;cursor:default;}
+.grade-badge{font-size:12px;font-family:var(--mono);font-weight:700;padding:5px 11px;border-radius:999px;margin-top:10px;display:none;}
+.grade-badge.show{display:inline-block;animation:fade .3s ease;}
+.grade-badge.benar{background:rgba(52,211,153,.18);color:var(--green);border:1px solid rgba(52,211,153,.45);}
+.grade-badge.salah{background:rgba(248,113,113,.16);color:var(--red);border:1px solid rgba(248,113,113,.45);}
+
+footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:44px;font-family:var(--mono);}
+.pill{display:inline-block;font-size:11px;font-family:var(--mono);padding:2px 9px;border-radius:999px;background:rgba(79,140,255,.12);border:1px solid rgba(79,140,255,.3);color:var(--cyan);margin:0 3px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">UTS · Grafika Komputer</div>
+    <h1>Latihan Soal OpenGL</h1>
+    <p class="sub">Berdasarkan Cheatsheet UTS — 21 materi · Pilihan ganda, benar/salah, dan jawaban singkat</p>
+  </header>
+
+  <div class="scorebar">
+    <span>Skor PG: <span class="val" id="score">0</span> / <span class="val" id="maxScore">0</span></span>
+    <span>Esai: <span class="val" id="essayScore">0</span> / <span class="val" id="essayMax">0</span></span>
+    <span>Terjawab: <span class="val" id="answered">0</span></span>
+    <span style="color:var(--muted)">💡 klik opsi untuk jawab PG · tulis lalu nilai esai sendiri</span>
+  </div>
+
+  <div class="toolbar">
+    <button class="tbtn active" data-filter="all">Semua</button>
+    <button class="tbtn" data-filter="pg">Pilihan Ganda</button>
+    <button class="tbtn" data-filter="tf">Benar / Salah</button>
+    <button class="tbtn" data-filter="isian">Isian Singkat</button>
+    <button class="tbtn" onclick="resetAll()">Reset</button>
+  </div>
+
+  <!-- ============ SECTION 1: OpenGL DASAR ============ -->
+  <div class="section"><h2>1. OpenGL Dasar &amp; Komponen</h2><div class="section-sub">OpenGL · GLFW · GLAD · GLSL · Context</div></div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">1</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Apa fungsi utama OpenGL menurut materi?</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>Membuat window, context, dan menerima input dari user</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>Library level rendah untuk membuat program graphics 2D/3D; melakukan rendering ke frame buffer</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>Memuat fungsi OpenGL versi tertentu saat runtime</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>Bahasa shader yang berjalan di GPU</span></div>
+    </div>
+    <div class="explain">OpenGL = <b>library/API rendering</b> level rendah yang melakukan rendering ke <b>frame buffer</b>, bukan langsung ke layar. Pembuatan window = tugas GLFW.</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">2</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Manakah peran GLFW yang benar?</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>Memuat fungsi OpenGL saat runtime</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>Multi-platform library untuk membuat window, context, surfaces, serta menerima input/output</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>Menyimpan index vertex</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>Menjalankan kode shader di GPU</span></div>
+    </div>
+    <div class="explain">GLFW = window/context/input. Yang memuat fungsi OpenGL saat runtime adalah <b>GLAD</b>.</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">3</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Urutan context dasar OpenGL yang benar adalah…</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>glfwMakeContextCurrent → glfwInit → glfwCreateWindow</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>glfwInit → glfwCreateWindow → glfwMakeContextCurrent</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>glfwCreateWindow → glfwInit → glfwMakeContextCurrent</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>gladLoadGLLoader → glfwInit → glfwCreateWindow</span></div>
+    </div>
+    <div class="explain"><b>glfwInit()</b> dulu, lalu <b>glfwCreateWindow(...)</b>, baru <b>glfwMakeContextCurrent(window)</b>. GLAD dipanggil setelah context current.</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">4</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Mengapa GLAD diperlukan dalam program OpenGL?</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>Karena OpenGL tidak bisa membuat jendela</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>Karena versi OpenGL beragam dan fungsi OpenGL hanya dapat dikenali/dipanggil saat runtime</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>Karena shader harus dikompilasi di CPU</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>Karena texture harus dibaca lebih dulu</span></div>
+    </div>
+    <div class="explain">GLAD = <b>loader generator</b>. Fungsi OpenGL tidak dikenali saat compile, jadi harus dimuat saat <b>runtime</b> setelah context tersedia.</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">5</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Di mana buffer dialokasikan oleh OpenGL context?</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>Di dalam shader</span></div>
+      <div class="opt" data-correct="false"><span class="k">B</span><span>Di frame buffer layar</span></div>
+      <div class="opt" data-correct="true"><span class="k">C</span><span>Di GPU</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>Di file shader .vs/.fs</span></div>
+    </div>
+    <div class="explain">Objek buffer adalah array memori tidak terformat yang <b>dialokasikan oleh context dan disimpan di GPU</b>.</div>
+  </div>
+
+  <div class="q" data-type="tf">
+    <div class="qhead"><div class="qnum">6</div><div class="qtext"><span class="tag">BENAR / SALAH</span>GLSL Shader Code berjalan di CPU agar pekerjaan grafis dialihkan.</div></div>
+    <div class="tf-btns">
+      <button class="tf-btn" data-correct="false">Benar</button>
+      <button class="tf-btn" data-correct="true">Salah</button>
+    </div>
+    <div class="explain"><b>Salah.</b> Saat GLSL shader terpasang, pekerjaan pemrosesan graphics dialihkan ke <b>GPU</b>, bukan CPU.</div>
+  </div>
+
+  <div class="q" data-type="tf">
+    <div class="qhead"><div class="qnum">7</div><div class="qtext"><span class="tag">BENAR / SALAH</span>OpenGL langsung menggambar ke layar tanpa perantara frame buffer.</div></div>
+    <div class="tf-btns">
+      <button class="tf-btn" data-correct="false">Benar</button>
+      <button class="tf-btn" data-correct="true">Salah</button>
+    </div>
+    <div class="explain"><b>Salah.</b> OpenGL melakukan <b>rendering ke frame buffer</b>, lalu kontennya dipakai untuk layar.</div>
+  </div>
+
+  <!-- ============ SECTION 2: KOORDINAT & VIEWPORT ============ -->
+  <div class="section"><h2>2. Koordinat &amp; Viewport</h2><div class="section-sub">NDC · sistem tangan kanan · glViewport</div></div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">8</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Apa itu NDC?</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>Warna normal objek (Normal Diffuse Color)</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>Normalized Device Coordinates — koordinat yang dipakai vertex shader, contoh range −1 sampai 1</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>Nama fungsi OpenGL untuk menggambar</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>Mode texture wrapping</span></div>
+    </div>
+    <div class="explain">NDC = <b>Normalized Device Coordinates</b>. Vertex yang diproses di vertex shader harus dalam keadaan NDC (contoh −1..1).</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">9</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Pada window 800×600, titik NDC (0.5, 0.5) dipetakan ke koordinat layar…</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>(800, 600)</span></div>
+      <div class="opt" data-correct="false"><span class="k">B</span><span>(200, 150)</span></div>
+      <div class="opt" data-correct="true"><span class="k">C</span><span>(400, 300)</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>(0, 0)</span></div>
+    </div>
+    <div class="explain">Titik tengah = setengah dimensi → 800/2 = 400, 600/2 = 300 → <b>(400, 300)</b>.</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">10</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Jika glViewport diberi (0, 0, w, h), posisi awal gambar berada di…</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>Ujung kiri atas</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>Ujung kiri bawah</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>Titik tengah window</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>Ujung kanan bawah</span></div>
+    </div>
+    <div class="explain">glViewport(0,0,...) menempatkan titik awal di <b>kiri bawah</b>.</div>
+  </div>
+
+  <div class="q" data-type="tf">
+    <div class="qhead"><div class="qnum">11</div><div class="qtext"><span class="tag">BENAR / SALAH</span>OpenGL menggunakan sistem koordinat tangan kanan, dan untuk tampak 2D kedalaman dibuat sama dengan z = 0.</div></div>
+    <div class="tf-btns">
+      <button class="tf-btn" data-correct="true">Benar</button>
+      <button class="tf-btn" data-correct="false">Salah</button>
+    </div>
+    <div class="explain"><b>Benar.</b> Sistem <b>tangan kanan</b>, dan z = 0 agar tampak 2D.</div>
+  </div>
+
+  <div class="q" data-type="isian">
+    <div class="qhead"><div class="qnum">12</div><div class="qtext"><span class="tag">ISIAN SINGKAT</span>Fungsi apa yang dipanggil di callback agar ukuran viewport menyesuaikan saat window di-resize? Tuliskan lengkap dengan parameternya.</div></div>
+    <label class="essay-label" for="essay1">Jawaban kamu:</label>
+    <textarea class="essay-box" id="essay1" placeholder="Tulis jawabanmu di sini... (otomatis tersimpan)"></textarea>
+    <div class="essay-actions">
+      <button class="reveal-btn" onclick="toggleReveal(this)">Lihat Kunci Jawaban</button>
+      <span class="essay-status" id="status1"></span>
+    </div>
+    <div class="grade-btns" id="grade1">
+      <button class="grade-btn benar" onclick="gradeEssay(this,1,true)">✔ Benar</button>
+      <button class="grade-btn salah" onclick="gradeEssay(this,1,false)">✖ Salah</button>
+    </div>
+    <span class="grade-badge" id="badge1"></span>
+    <div class="reveal-answer"><b>glViewport(0, 0, width, height);</b> — dipanggil di dalam <code>framebuffer_size_callback(GLFWwindow* window, int width, int height)</code>, yang didaftarkan dengan <code>glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);</code></div>
+  </div>
+
+  <!-- ============ SECTION 3: GRAPHICS PIPELINE ============ -->
+  <div class="section"><h2>3. Graphics Pipeline</h2><div class="section-sub">Urutan 7 tahap</div></div>
+
+  <div class="q" data-type="isian">
+    <div class="qhead"><div class="qnum">13</div><div class="qtext"><span class="tag">ISIAN SINGKAT</span>Sebutkan urutan lengkap tahapan Graphics Pipeline.</div></div>
+    <label class="essay-label" for="essay2">Jawaban kamu:</label>
+    <textarea class="essay-box" id="essay2" placeholder="Tulis jawabanmu di sini... (otomatis tersimpan)"></textarea>
+    <div class="essay-actions">
+      <button class="reveal-btn" onclick="toggleReveal(this)">Lihat Kunci Jawaban</button>
+      <span class="essay-status" id="status2"></span>
+    </div>
+    <div class="grade-btns" id="grade2">
+      <button class="grade-btn benar" onclick="gradeEssay(this,2,true)">✔ Benar</button>
+      <button class="grade-btn salah" onclick="gradeEssay(this,2,false)">✖ Salah</button>
+    </div>
+    <span class="grade-badge" id="badge2"></span>
+    <div class="reveal-answer"><b>Vertex Input → Vertex Shader → Primitive Assembly → Rasterization → Clipping → Fragment Shader → Output</b></div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">14</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Tahap yang mendiskritkan/memetakan primitive menjadi pixel adalah…</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>Vertex Shader</span></div>
+      <div class="opt" data-correct="false"><span class="k">B</span><span>Primitive Assembly</span></div>
+      <div class="opt" data-correct="true"><span class="k">C</span><span>Rasterization</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>Clipping</span></div>
+    </div>
+    <div class="explain"><b>Rasterization</b> memetakan primitive → pixel; memilih pixel yang berasosiasi dengan base color &amp; depth.</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">15</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Apa yang dilakukan tahap Clipping?</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>Mengubah warna final pixel</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>Membuang fragmen di luar fragmen/area yang ditentukan — dilakukan sebelum fragment shader</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>Merakit vertex menjadi primitive</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>Memuat data vertex dari buffer</span></div>
+    </div>
+    <div class="explain"><b>Clipping</b> membuang fragmen di luar area yang ditentukan, dijalankan <b>sebelum</b> fragment shader.</div>
+  </div>
+
+  <div class="q" data-type="tf">
+    <div class="qhead"><div class="qnum">16</div><div class="qtext"><span class="tag">BENAR / SALAH</span>Fragment shader bertugas menghitung warna final pixel, termasuk efek cahaya dan bayangan.</div></div>
+    <div class="tf-btns">
+      <button class="tf-btn" data-correct="true">Benar</button>
+      <button class="tf-btn" data-correct="false">Salah</button>
+    </div>
+    <div class="explain"><b>Benar.</b> Fragment shader = warna final pixel, mencakup warna dasar + efek cahaya/bayangan.</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">17</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Dua shader yang disebut materi tetapi belum dibahas dan bersifat opsional adalah…</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>Vertex &amp; Fragment Shader</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>Tessellation &amp; Geometry Shader</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>Compute &amp; Ray Shader</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>Pixel &amp; Depth Shader</span></div>
+    </div>
+    <div class="explain"><b>Tessellation</b> (interpolasi vertex mis. lingkaran smooth) dan <b>Geometry</b> shader (mis. riak air) — opsional, belum dibahas.</div>
+  </div>
+
+  <!-- ============ SECTION 4: VERTEX, VBO, VAO, EBO ============ -->
+  <div class="section"><h2>4. Vertex, VBO, VAO, EBO</h2><div class="section-sub">Jangan ketuker!</div></div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">18</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Apa yang disimpan oleh VBO?</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>Konfigurasi atribut vertex</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>Data vertex pada memory GPU (array memori tidak terformat)</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>Index vertex</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>Warna final pixel</span></div>
+    </div>
+    <div class="explain"><b>VBO</b> = data vertex (memory GPU). Konfigurasi atribut = VAO. Index = EBO.</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">19</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Apa yang disimpan oleh VAO?</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>Data vertex mentah</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>Konfigurasi pointer/atribut vertex dari buffer</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>Source code shader</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>Index untuk glDrawElements</span></div>
+    </div>
+    <div class="explain"><b>VAO</b> = konfigurasi/urutan atribut vertex; cukup bind saat menggambar.</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">20</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Fungsi EBO adalah…</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>Menyimpan warna vertex</span></div>
+      <div class="opt" data-correct="false"><span class="k">B</span><span>Memuat fungsi OpenGL runtime</span></div>
+      <div class="opt" data-correct="true"><span class="k">C</span><span>Menyimpan index vertex (unsigned int) agar vertex sama tidak ditulis berulang</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>Membangkitkan tekstur</span></div>
+    </div>
+    <div class="explain"><b>EBO</b> menyimpan <b>index vertex</b> bertipe unsigned int untuk glDrawElements.</div>
+  </div>
+
+  <div class="q" data-type="isian">
+    <div class="qhead"><div class="qnum">21</div><div class="qtext"><span class="tag">ISIAN SINGKAT</span>Tuliskan urutan setup VAO, VBO, dan EBO yang benar (nama fungsi).</div></div>
+    <label class="essay-label" for="essay3">Jawaban kamu:</label>
+    <textarea class="essay-box" id="essay3" placeholder="Tulis jawabanmu di sini... (otomatis tersimpan)"></textarea>
+    <div class="essay-actions">
+      <button class="reveal-btn" onclick="toggleReveal(this)">Lihat Kunci Jawaban</button>
+      <span class="essay-status" id="status3"></span>
+    </div>
+    <div class="grade-btns" id="grade3">
+      <button class="grade-btn benar" onclick="gradeEssay(this,3,true)">✔ Benar</button>
+      <button class="grade-btn salah" onclick="gradeEssay(this,3,false)">✖ Salah</button>
+    </div>
+    <span class="grade-badge" id="badge3"></span>
+    <div class="reveal-answer"><b>glGenVertexArrays → glBindVertexArray → glGenBuffers → glBindBuffer → glBufferData → glVertexAttribPointer → glEnableVertexAttribArray</b><br><span style="color:var(--muted)">Urutan bind: <b>VAO dulu</b>, baru VBO (GL_ARRAY_BUFFER) &amp; EBO (GL_ELEMENT_ARRAY_BUFFER), baru konfigurasi atribut.</span></div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">22</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Fungsi glGenBuffers(n, &amp;id) berfungsi untuk…</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>Mengikat buffer ke target</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>Membangkitkan id buffer</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>Mencopy data ke buffer GPU</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>Mengaktifkan atribut vertex</span></div>
+    </div>
+    <div class="explain"><b>glGenBuffers</b> = bangkitkan id. glBindBuffer = ikat. glBufferData = copy data.</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">23</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Fungsi glBufferData(target, size, data, usage) pada materi memakai usage…</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>GL_DYNAMIC_DRAW</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>GL_STATIC_DRAW</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>GL_STREAM_DRAW</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>GL_FIXED_DRAW</span></div>
+    </div>
+    <div class="explain">Materi memakai <b>GL_STATIC_DRAW</b> untuk glBufferData.</div>
+  </div>
+
+  <div class="q" data-type="tf">
+    <div class="qhead"><div class="qnum">24</div><div class="qtext"><span class="tag">BENAR / SALAH</span>Urutan bind yang benar adalah VBO terlebih dahulu, baru VAO dan konfigurasi atribut.</div></div>
+    <div class="tf-btns">
+      <button class="tf-btn" data-correct="false">Benar</button>
+      <button class="tf-btn" data-correct="true">Salah</button>
+    </div>
+    <div class="explain"><b>Salah.</b> Yang benar: ikat <b>VAO dahulu</b>, baru VBO/EBO, lalu konfigurasi atribut. (Jika VBO diikat sebelum VAO, harus diikat ulang.)</div>
+  </div>
+
+  <!-- ============ SECTION 5: DRAWARRAYS VS DRAWELEMENTS ============ -->
+  <div class="section"><h2>5. glDrawArrays vs glDrawElements</h2><div class="section-sub">Tanpa index vs dengan index</div></div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">25</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Manakah pernyataan yang tepat?</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>glDrawArrays memakai index dari EBO; glDrawElements menggambar berurutan</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>glDrawArrays menggambar vertex berurutan langsung dari VBO; glDrawElements menggambar melalui index di EBO</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>Keduanya identik dan tidak ada perbedaan</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>glDrawElements tidak membutuhkan shader</span></div>
+    </div>
+    <div class="explain"><b>glDrawArrays</b> = berurutan tanpa index (contoh: 3 vertex). <b>glDrawElements</b> = via index/EBO (contoh: rectangle, lebih efisien).</div>
+  </div>
+
+  <div class="q" data-type="isian">
+    <div class="qhead"><div class="qnum">26</div><div class="qtext"><span class="tag">ISIAN SINGKAT</span>Tuliskan baris kode materi untuk menggambar segitiga sederhana (3 vertex) dan menggambar rectangle dengan index.</div></div>
+    <label class="essay-label" for="essay4">Jawaban kamu:</label>
+    <textarea class="essay-box" id="essay4" placeholder="Tulis jawabanmu di sini... (otomatis tersimpan)"></textarea>
+    <div class="essay-actions">
+      <button class="reveal-btn" onclick="toggleReveal(this)">Lihat Kunci Jawaban</button>
+      <span class="essay-status" id="status4"></span>
+    </div>
+    <div class="grade-btns" id="grade4">
+      <button class="grade-btn benar" onclick="gradeEssay(this,4,true)">✔ Benar</button>
+      <button class="grade-btn salah" onclick="gradeEssay(this,4,false)">✖ Salah</button>
+    </div>
+    <span class="grade-badge" id="badge4"></span>
+    <div class="reveal-answer">Segitiga: <code>glDrawArrays(GL_TRIANGLES, 0, 3);</code><br>
+      Rectangle: <code>glDrawElements(GL_TRIANGLES, sizeof(indices), GL_UNSIGNED_INT, 0);</code></div>
+  </div>
+
+  <!-- ============ SECTION 6: RECTANGLE & INDEX ============ -->
+  <div class="section"><h2>6. Rectangle &amp; Index</h2><div class="section-sub">4 vertex → 2 triangle</div></div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">27</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Mengapa rectangle cukup memakai 4 vertex posisi, bukan 6?</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>Karena OpenGL membatasi maksimal 4 vertex</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>Karena dua triangle berbagi vertex yang sama; index mengakses ulang vertex tersebut</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>Karena rectangle tidak memiliki z</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>Karena texture membutuhkan 4 titik UV</span></div>
+    </div>
+    <div class="explain">Rectangle disusun dari <b>2 triangle berhimpit</b>. Dua triangle <b>berbagi vertex</b> → 4 vertex cukup, index mengakses ulang.</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">28</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Perhatikan kode berikut.<br><pre>unsigned int indices[] = { 0, 1, 2,  1, 2, 3 };</pre>Apa isi indices tersebut?</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>6 vertex posisi</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>Index untuk 2 segitiga: {0,1,2} segitiga 1 dan {1,2,3} segitiga 2</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>Nilai warna RGB</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>Koordinat UV texture</span></div>
+    </div>
+    <div class="explain"><b>indices[]</b> memberi index unik vertex; 6 angka = 2 segitiga (masing-masing 3 index).</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">29</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Perintah untuk mengaktifkan mode wireframe pada materi adalah…</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>glLineMode(GL_FRONT_AND_BACK, GL_WIRE);</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>glDrawElements(GL_LINES, ...);</span></div>
+    </div>
+    <div class="explain">Wireframe = <b>GL_LINE</b>; default model biasa = <b>GL_FILL</b>.</div>
+  </div>
+
+  <div class="q" data-type="tf">
+    <div class="qhead"><div class="qnum">30</div><div class="qtext"><span class="tag">BENAR / SALAH</span>EBO memakai target GL_ELEMENT_ARRAY_BUFFER dan penggambarannya dengan glDrawElements().</div></div>
+    <div class="tf-btns">
+      <button class="tf-btn" data-correct="true">Benar</button>
+      <button class="tf-btn" data-correct="false">Salah</button>
+    </div>
+    <div class="explain"><b>Benar.</b> EBO → GL_ELEMENT_ARRAY_BUFFER, digambar dengan glDrawElements().</div>
+  </div>
+
+  <!-- ============ SECTION 7: STRUKTUR ARRAY VERTEX ============ -->
+  <div class="section"><h2>7. Struktur Array Vertex</h2><div class="section-sub">stride · offset · location · glVertexAttribPointer</div></div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">31</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Jika satu vertex berisi posisi + warna (6 float), berapa nilai stride-nya?</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>3 * sizeof(float)</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>6 * sizeof(float)</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>8 * sizeof(float)</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>2 * sizeof(float)</span></div>
+    </div>
+    <div class="explain"><b>stride</b> = jarak total antar awal atribut vertex berikutnya. posisi+warna = 6 float → <b>6*sizeof(float)</b>.</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">32</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Berapa offset awal atribut warna jika stride-nya 6*sizeof(float)?</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>(GLvoid*)0</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>(GLvoid*)(3*sizeof(float))</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>(GLvoid*)(6*sizeof(float))</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>(GLvoid*)(2*sizeof(float))</span></div>
+    </div>
+    <div class="explain">Warna mulai setelah <b>3 komponen posisi</b> → offset = (GLvoid*)(3*sizeof(float)). Offset 0 untuk posisi.</div>
+  </div>
+
+  <div class="q" data-type="isian">
+    <div class="qhead"><div class="qnum">33</div><div class="qtext"><span class="tag">ISIAN SINGKAT</span>Jelaskan arti 6 parameter glVertexAttribPointer(index, size, type, normalized, stride, pointer).</div></div>
+    <label class="essay-label" for="essay5">Jawaban kamu:</label>
+    <textarea class="essay-box" id="essay5" placeholder="Tulis jawabanmu di sini... (otomatis tersimpan)"></textarea>
+    <div class="essay-actions">
+      <button class="reveal-btn" onclick="toggleReveal(this)">Lihat Kunci Jawaban</button>
+      <span class="essay-status" id="status5"></span>
+    </div>
+    <div class="grade-btns" id="grade5">
+      <button class="grade-btn benar" onclick="gradeEssay(this,5,true)">✔ Benar</button>
+      <button class="grade-btn salah" onclick="gradeEssay(this,5,false)">✖ Salah</button>
+    </div>
+    <span class="grade-badge" id="badge5"></span>
+    <div class="reveal-answer"><b>index</b>: lokasi atribut (0=pos, 1=color, 2=texCoord)<br>
+      <b>size</b>: jumlah komponen (pos/color=3, texCoord=2)<br>
+      <b>type</b>: tipe data (GL_FLOAT)<br>
+      <b>normalized</b>: GL_FALSE pada materi<br>
+      <b>stride</b>: jarak antar vertex (6*float atau 8*float)<br>
+      <b>pointer</b>: offset awal atribut, mis. (GLvoid*)0</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">34</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Untuk vertex berisi pos + warna + UV (8 float), bagaimana tiga pemanggilan glVertexAttribPointer yang benar?</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>stride 3*float dengan offset 0, 3, 6</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>stride 8*float; index 0 offset 0 (size 3), index 1 offset 3*float (size 3), index 2 offset 6*float (size 2)</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>stride 6*float dengan tiga VBO terpisah</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>stride 2*float; semua index offset 0</span></div>
+    </div>
+    <div class="explain">Pos+warna+UV = <b>8*sizeof(float)</b>. Index 0: size 3, offset 0 · Index 1: size 3, offset 3*float · Index 2: size 2, offset 6*float.</div>
+  </div>
+
+  <div class="q" data-type="tf">
+    <div class="qhead"><div class="qnum">35</div><div class="qtext"><span class="tag">BENAR / SALAH</span>Nilai index pada glVertexAttribPointer harus disamakan dengan layout(location=...) pada shader.</div></div>
+    <div class="tf-btns">
+      <button class="tf-btn" data-correct="true">Benar</button>
+      <button class="tf-btn" data-correct="false">Salah</button>
+    </div>
+    <div class="explain"><b>Benar.</b> index/location adalah nomor lokasi atribut yang disamakan dengan <b>layout(location=...)</b> pada shader.</div>
+  </div>
+
+  <!-- ============ SECTION 8: SHADER & GLSL ============ -->
+  <div class="section"><h2>8. Shader &amp; GLSL</h2><div class="section-sub">in / out · gl_Position · FragColor · vec</div></div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">36</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Vertex shader memproses vertex dan mengisi variabel…</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>FragColor (vec4)</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>gl_Position (vec4)</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>glViewport</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>uniform mycolor</span></div>
+    </div>
+    <div class="explain"><b>Vertex Shader</b> → gl_Position (vec4). <b>Fragment Shader</b> → FragColor/fragColor (vec4).</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">37</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Dalam GLSL, kata kunci <code>in</code> dan <code>out</code> berarti…</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>in untuk uniform, out untuk atribut</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>in menerima input, out mengirim output ke tahap berikutnya</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>in untuk CPU, out untuk GPU</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>Keduanya sama saja</span></div>
+    </div>
+    <div class="explain"><b>in</b> = input, <b>out</b> = output. Output VS diterima FS dengan <b>nama &amp; tipe yang sama</b>.</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">38</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Untuk mengakses komponen ke-3 (z) dari variabel <code>vec4 varku</code>, sintaks yang benar adalah…</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>varku[3]</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>varku.z</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>varku.3</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>varku.a</span></div>
+    </div>
+    <div class="explain">Komponen diakses dengan <b>.x .y .z .w</b>. Komponen ke-3 = <b>.z</b>.</div>
+  </div>
+
+  <div class="q" data-type="isian">
+    <div class="qhead"><div class="qnum">39</div><div class="qtext"><span class="tag">ISIAN SINGKAT</span>Jelaskan alur data komunikasi dari CPU sampai output FragColor (antara vertex &amp; fragment shader).</div></div>
+    <label class="essay-label" for="essay6">Jawaban kamu:</label>
+    <textarea class="essay-box" id="essay6" placeholder="Tulis jawabanmu di sini... (otomatis tersimpan)"></textarea>
+    <div class="essay-actions">
+      <button class="reveal-btn" onclick="toggleReveal(this)">Lihat Kunci Jawaban</button>
+      <span class="essay-status" id="status6"></span>
+    </div>
+    <div class="grade-btns" id="grade6">
+      <button class="grade-btn benar" onclick="gradeEssay(this,6,true)">✔ Benar</button>
+      <button class="grade-btn salah" onclick="gradeEssay(this,6,false)">✖ Salah</button>
+    </div>
+    <span class="grade-badge" id="badge6"></span>
+    <div class="reveal-answer"><b>CPU mengatur vertex attribute → vertex shader menerima <code>in</code> → vertex shader mengirim <code>out</code> → fragment shader menerima <code>in</code> (nama/tipe sama) → output <code>FragColor</code>.</b></div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">40</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Tipe <code>vec2</code>, <code>vec3</code>, <code>vec4</code> adalah…</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>Integer vektor berdimensi 2, 3, 4</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>Vektor float berdimensi 2, 3, 4</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>Tipe boolean matrix</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>Tipe string texture</span></div>
+    </div>
+    <div class="explain">vecn = <b>vektor float</b> berdimensi n. (integer = ivec, boolean = bvec.)</div>
+  </div>
+
+  <!-- ============ SECTION 9: COMPILE & LINK ============ -->
+  <div class="section"><h2>9. Compile &amp; Link Shader</h2><div class="section-sub">Urutan wajib</div></div>
+
+  <div class="q" data-type="isian">
+    <div class="qhead"><div class="qnum">41</div><div class="qtext"><span class="tag">ISIAN SINGKAT</span>Tuliskan urutan compile &amp; link shader secara lengkap.</div></div>
+    <label class="essay-label" for="essay7">Jawaban kamu:</label>
+    <textarea class="essay-box" id="essay7" placeholder="Tulis jawabanmu di sini... (otomatis tersimpan)"></textarea>
+    <div class="essay-actions">
+      <button class="reveal-btn" onclick="toggleReveal(this)">Lihat Kunci Jawaban</button>
+      <span class="essay-status" id="status7"></span>
+    </div>
+    <div class="grade-btns" id="grade7">
+      <button class="grade-btn benar" onclick="gradeEssay(this,7,true)">✔ Benar</button>
+      <button class="grade-btn salah" onclick="gradeEssay(this,7,false)">✖ Salah</button>
+    </div>
+    <span class="grade-badge" id="badge7"></span>
+    <div class="reveal-answer"><b>glCreateShader → glShaderSource → glCompileShader → glCreateProgram → glAttachShader → glLinkProgram → glDeleteShader</b></div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">42</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Fungsi glCreateShader menerima parameter untuk membuat…</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>GL_PROGRAM</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>GL_VERTEX_SHADER atau GL_FRAGMENT_SHADER</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>GL_ARRAY_BUFFER</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>GL_TEXTURE_2D</span></div>
+    </div>
+    <div class="explain">glCreateShader(GL_VERTEX_SHADER) untuk VS, glCreateShader(GL_FRAGMENT_SHADER) untuk FS.</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">43</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Apa perbedaan shader object dan shader program?</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>Keduanya sama, hanya beda nama</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>Shader object = hasil compile masing-masing VS/FS; shader program = hasil link yang menggabungkan keduanya dan dipakai glUseProgram()</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>Shader object berjalan di GPU, shader program di CPU</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>Shader program dibuat sebelum compile</span></div>
+    </div>
+    <div class="explain"><b>Object</b> = di-compile (VS/FS terpisah). <b>Program</b> = gabungan hasil link, dipakai dengan glUseProgram().</div>
+  </div>
+
+  <div class="q" data-type="tf">
+    <div class="qhead"><div class="qnum">44</div><div class="qtext"><span class="tag">BENAR / SALAH</span>glDeleteShader dipanggil setelah glLinkProgram untuk menghapus shader object.</div></div>
+    <div class="tf-btns">
+      <button class="tf-btn" data-correct="true">Benar</button>
+      <button class="tf-btn" data-correct="false">Salah</button>
+    </div>
+    <div class="explain"><b>Benar.</b> Setelah link, shader object dihapus dengan glDeleteShader (sudah tidak diperlukan program).</div>
+  </div>
+
+  <!-- ============ SECTION 10: UNIFORM ============ -->
+  <div class="section"><h2>10. Uniform</h2><div class="section-sub">glGetUniformLocation · glUniform4f</div></div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">45</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Apa keistimewaan uniform?</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>Bersifat lokal dan berubah tiap vertex</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>Bersifat global &amp; unik per shader program; nilainya bertahan sampai di-update/di-reset</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>Hanya bisa dibaca oleh vertex shader</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>Dibuat otomatis tanpa deklarasi</span></div>
+    </div>
+    <div class="explain">Uniform = global, unik per shader program, nilainya <b>bertahan</b> sampai di-update/di-reset.</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">46</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Bagaimana cara CPU mengubah nilai uniform?</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>glBindBuffer lalu glBufferData</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>glGetUniformLocation untuk dapat lokasi, lalu glUniform4f setelah glUseProgram</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>glVertexAttribPointer index baru</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>glTexImage2D</span></div>
+    </div>
+    <div class="explain">Alur: <b>CPU → glGetUniformLocation() → glUniform4f() → shader membaca uniform</b> (setelah glUseProgram di render loop).</div>
+  </div>
+
+  <div class="q" data-type="tf">
+    <div class="qhead"><div class="qnum">47</div><div class="qtext"><span class="tag">BENAR / SALAH</span>Uniform dan in/out sama-sama mengalirkan data antar tahap shader.</div></div>
+    <div class="tf-btns">
+      <button class="tf-btn" data-correct="false">Benar</button>
+      <button class="tf-btn" data-correct="true">Salah</button>
+    </div>
+    <div class="explain"><b>Salah.</b> in/out mengalirkan data antar tahap shader; <b>uniform di-update dari program CPU</b> ke shader program (beda mekanisme).</div>
+  </div>
+
+  <!-- ============ SECTION 11: SHADERMANAGER ============ -->
+  <div class="section"><h2>11. ShaderManager</h2><div class="section-sub">readShader · GetInstance · compileAndLink · destroy</div></div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">48</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Fungsi readShader() pada ShaderManager bekerja dengan cara…</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>Mengompilasi shader langsung ke GPU</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>Membuka file shader dengan ifstream, membaca baris, menggabungkan ke string, lalu mengembalikan content</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>Menghapus instance singleton</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>Membangkitkan VAO</span></div>
+    </div>
+    <div class="explain">readShader() = baca file via <b>ifstream</b>, gabung ke string, return content.</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">49</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Apa yang dilakukan destroy() pada ShaderManager?</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>Menghapus semua VBO dan texture</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>Menghapus instance jika ada, lalu mengosongkan pointer instance</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>Memuat ulang shader dari file</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>Mengembalikan id shaderProgram</span></div>
+    </div>
+    <div class="explain"><b>destroy()</b> = hapus instance (delete), set pointer instance = NULL.</div>
+  </div>
+
+  <div class="q" data-type="isian">
+    <div class="qhead"><div class="qnum">50</div><div class="qtext"><span class="tag">ISIAN SINGKAT</span>Tuliskan cara menggunakan ShaderManager (compile, ambil program, destroy).</div></div>
+    <label class="essay-label" for="essay8">Jawaban kamu:</label>
+    <textarea class="essay-box" id="essay8" placeholder="Tulis jawabanmu di sini... (otomatis tersimpan)"></textarea>
+    <div class="essay-actions">
+      <button class="reveal-btn" onclick="toggleReveal(this)">Lihat Kunci Jawaban</button>
+      <span class="essay-status" id="status8"></span>
+    </div>
+    <div class="grade-btns" id="grade8">
+      <button class="grade-btn benar" onclick="gradeEssay(this,8,true)">✔ Benar</button>
+      <button class="grade-btn salah" onclick="gradeEssay(this,8,false)">✖ Salah</button>
+    </div>
+    <span class="grade-badge" id="badge8"></span>
+    <div class="reveal-answer"><code>ShaderManager::GetInstance()->compileAndLink("Test.vs", "Test.fs");</code><br>
+      <code>glUseProgram(ShaderManager::GetInstance()->getShaderProgram());</code><br>
+      <code>ShaderManager::GetInstance()->destroy();</code></div>
+  </div>
+
+  <!-- ============ SECTION 12-16: TEXTURE ============ -->
+  <div class="section"><h2>12–16. Texture</h2><div class="section-sub">UV · wrapping · filtering · mipmap · stb_image</div></div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">51</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Berapa range koordinat texture (UV) pada materi?</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>−1 sampai 1</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>(0,0) sampai (1,1)</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>0 sampai 255</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>−0.5 sampai 0.5</span></div>
+    </div>
+    <div class="explain">Koordinat texture: <b>(0,0) sampai (1,1)</b>. U &amp; V = simbol koordinat texture.</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">52</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Apa bedanya UV coordinate dengan vertex coordinate?</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>UV untuk posisi objek, vertex untuk gambar</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>UV menunjuk posisi sampel pada gambar texture; vertex coordinate menunjuk posisi objek</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>Keduanya sama persis</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>UV hanya untuk objek 3D</span></div>
+    </div>
+    <div class="explain">UV = posisi sampel pada <b>gambar texture</b>; vertex coordinate = <b>posisi objek</b>.</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">53</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Mode wrapping yang membuat texture diulang lalu dibalik/flip adalah…</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>GL_REPEAT</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>GL_MIRRORED_REPEAT</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>GL_CLAMP_TO_EDGE</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>GL_CLAMP_TO_BORDER</span></div>
+    </div>
+    <div class="explain"><b>GL_MIRRORED_REPEAT</b> = repeat + dibalik. GL_REPEAT = ulang saja. GL_CLAMP_TO_EDGE = stretch ke border.</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">54</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Mode wrapping yang memberi warna pada area di luar texture adalah…</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>GL_REPEAT</span></div>
+      <div class="opt" data-correct="false"><span class="k">B</span><span>GL_MIRRORED_REPEAT</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>GL_CLAMP_TO_EDGE</span></div>
+      <div class="opt" data-correct="true"><span class="k">D</span><span>GL_CLAMP_TO_BORDER</span></div>
+    </div>
+    <div class="explain"><b>GL_CLAMP_TO_BORDER</b> = area di luar texture diberi warna border.</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">55</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Apa perbedaan GL_NEAREST dan GL_LINEAR?</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>Nearest menginterpolasi; Linear memilih pixel terdekat</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>Nearest memilih pixel terdekat; Linear menginterpolasi linier dari pixel terdekat</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>Keduanya sama-sama mode wrapping</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>Nearest untuk 3D, Linear untuk 2D</span></div>
+    </div>
+    <div class="explain"><b>GL_NEAREST</b> = pixel terdekat. <b>GL_LINEAR</b> = interpolasi linier pixel terdekat. Keduanya filtering.</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">56</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Kapan MIN_FILTER dan MAG_FILTER dipakai?</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>MIN untuk texture diperbesar, MAG untuk diperkecil</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>MIN_FILTER saat texture diperkecil; MAG_FILTER saat texture diperbesar</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>MIN untuk wrapping S, MAG untuk wrapping T</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>Keduanya hanya untuk mipmap</span></div>
+    </div>
+    <div class="explain"><b>MIN_FILTER</b> = texture diperkecil, <b>MAG_FILTER</b> = texture diperbesar.</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">57</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Apa itu texel?</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>Jumlah maksimum texture per objek</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>Texture pixel — nilai koordinat texture berupa float yang tidak bergantung resolusi</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>Nama lain untuk vertex</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>Format file gambar texture</span></div>
+    </div>
+    <div class="explain"><b>Texel</b> = texture pixel; koordinatnya float, tidak bergantung resolusi.</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">58</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Setiap texture mipmap berikutnya berukuran…</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>Sama besar</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>Dua kali lebih kecil dari sebelumnya</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>Dua kali lebih besar</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>Setengah lebih kecil (0.5×)</span></div>
+    </div>
+    <div class="explain">Mipmap: setiap texture berikutnya <b>dua kali (2×) lebih kecil</b> dari sebelumnya.</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">59</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Mode mipmap yang menginterpolasi linier antara dua mipmap terdekat dan sampling juga linier adalah…</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>GL_NEAREST_MIPMAP_NEAREST</span></div>
+      <div class="opt" data-correct="false"><span class="k">B</span><span>GL_LINEAR_MIPMAP_NEAREST</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>GL_NEAREST_MIPMAP_LINEAR</span></div>
+      <div class="opt" data-correct="true"><span class="k">D</span><span>GL_LINEAR_MIPMAP_LINEAR</span></div>
+    </div>
+    <div class="explain"><b>GL_LINEAR_MIPMAP_LINEAR</b> = interpolasi linier antar 2 mipmap terdekat + sampling linier. (Keduanya "LINEAR".)</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">60</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Mengapa texture perlu di-flip vertikal (stbi_set_flip_vertically_on_load(true))?</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>Karena PNG selalu terbalik</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>Karena OpenGL mengharapkan y=0 di bawah, sedangkan gambar biasanya mulai dari atas</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>Karena texture harus berukuran pangkat dua</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>Karena mipmap membutuhkan flip</span></div>
+    </div>
+    <div class="explain">OpenGL mengharapkan <b>y=0 di bawah</b>; gambar (PNG/JPG) biasanya 0 di atas → perlu flip.</div>
+  </div>
+
+  <div class="q" data-type="isian">
+    <div class="qhead"><div class="qnum">61</div><div class="qtext"><span class="tag">ISIAN SINGKAT</span>Tuliskan urutan membuat texture dari membuat id sampai bind di render loop.</div></div>
+    <label class="essay-label" for="essay9">Jawaban kamu:</label>
+    <textarea class="essay-box" id="essay9" placeholder="Tulis jawabanmu di sini... (otomatis tersimpan)"></textarea>
+    <div class="essay-actions">
+      <button class="reveal-btn" onclick="toggleReveal(this)">Lihat Kunci Jawaban</button>
+      <span class="essay-status" id="status9"></span>
+    </div>
+    <div class="grade-btns" id="grade9">
+      <button class="grade-btn benar" onclick="gradeEssay(this,9,true)">✔ Benar</button>
+      <button class="grade-btn salah" onclick="gradeEssay(this,9,false)">✖ Salah</button>
+    </div>
+    <span class="grade-badge" id="badge9"></span>
+    <div class="reveal-answer"><b>glGenTextures → glBindTexture → glTexParameteri → stbi_load → glTexImage2D → glGenerateMipmap → (render loop) glBindTexture</b><br><span style="color:var(--muted)">Lib pembaca image: <b>SOIL</b> atau <b>stb_image.h</b>.</span></div>
+  </div>
+
+  <!-- ============ SECTION 17-18: FUNGSI & JANGAN KETUKER ============ -->
+  <div class="section"><h2>17–18. Fungsi Wajib &amp; Jangan Ketuker</h2><div class="section-sub">Pasangan yang sering tertukar</div></div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">62</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Fungsi mana yang mengirim data gambar ke texture 2D?</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>glGenTextures</span></div>
+      <div class="opt" data-correct="false"><span class="k">B</span><span>glBindTexture</span></div>
+      <div class="opt" data-correct="true"><span class="k">C</span><span>glTexImage2D</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>glTexParameteri</span></div>
+    </div>
+    <div class="explain"><b>glTexImage2D</b> = kirim data gambar ke texture 2D. glTexParameteri = atur wrapping/filtering.</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">63</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Fungsi yang mengatur wrapping/filtering texture adalah…</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>glTexImage2D</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>glTexParameteri</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>glGenerateMipmap</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>glBindTexture</span></div>
+    </div>
+    <div class="explain"><b>glTexParameteri</b> = mengatur TEXTURE_WRAP dan TEXTURE_MIN/MAG_FILTER.</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">64</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Manakah pasangan yang benar tentang GLFW vs GLAD?</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>GLFW memuat fungsi OpenGL; GLAD membuat window/context</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>GLFW membuat window/context dan event; GLAD memuat fungsi OpenGL saat runtime</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>Keduanya membuat shader program</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>Keduanya membaca file texture</span></div>
+    </div>
+    <div class="explain"><b>GLFW</b> = window/context/event; <b>GLAD</b> = memuat fungsi OpenGL runtime.</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">65</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Perhatikan kode.<br><pre>glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,
+    6 * sizeof(float), (GLvoid*)0);
+glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE,
+    6 * sizeof(float), (GLvoid*)(3*sizeof(float)));</pre>Kode ini menunjukkan struktur array…</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>Dua VBO terpisah (posisi &amp; warna)</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>Interleaved position-color dalam satu array (stride 6, warna di offset 3)</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>Array dengan UV coordinate</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>Texture mapping</span></div>
+    </div>
+    <div class="explain">Ini <b>interleaved position + color</b> dalam 1 array: stride 6*sizeof(float), warna di offset 3*sizeof(float).</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">66</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Manakah yang tepat tentang vertex vs fragment?</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>Vertex = data pixel, fragment = data simpul</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>Vertex = data simpul; fragment = semua data yang dibutuhkan untuk merender pixel</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>Keduanya sama-sama output FragColor</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>Vertex hanya untuk 3D, fragment untuk 2D</span></div>
+    </div>
+    <div class="explain"><b>Vertex</b> = data simpul; <b>fragment</b> = data yang dibutuhkan untuk merender pixel.</div>
+  </div>
+
+  <!-- ============ SECTION 20: URUTAN WAJIB ============ -->
+  <div class="section"><h2>20. Urutan Wajib Ingat</h2><div class="section-sub">Hafalan kilat sebelum UTS</div></div>
+
+  <div class="q" data-type="isian">
+    <div class="qhead"><div class="qnum">67</div><div class="qtext"><span class="tag">ISIAN SINGKAT</span>Tuliskan urutan RENDER LOOP yang benar.</div></div>
+    <label class="essay-label" for="essay10">Jawaban kamu:</label>
+    <textarea class="essay-box" id="essay10" placeholder="Tulis jawabanmu di sini... (otomatis tersimpan)"></textarea>
+    <div class="essay-actions">
+      <button class="reveal-btn" onclick="toggleReveal(this)">Lihat Kunci Jawaban</button>
+      <span class="essay-status" id="status10"></span>
+    </div>
+    <div class="grade-btns" id="grade10">
+      <button class="grade-btn benar" onclick="gradeEssay(this,10,true)">✔ Benar</button>
+      <button class="grade-btn salah" onclick="gradeEssay(this,10,false)">✖ Salah</button>
+    </div>
+    <span class="grade-badge" id="badge10"></span>
+    <div class="reveal-answer"><b>glClear → glUseProgram → glBindVertexArray → glDrawArrays/glDrawElements → glfwSwapBuffers → glfwPollEvents</b></div>
+  </div>
+
+  <div class="q" data-type="isian">
+    <div class="qhead"><div class="qnum">68</div><div class="qtext"><span class="tag">ISIAN SINGKAT</span>Tuliskan urutan SETUP OpenGL (dari glfwInit sampai glViewport).</div></div>
+    <label class="essay-label" for="essay11">Jawaban kamu:</label>
+    <textarea class="essay-box" id="essay11" placeholder="Tulis jawabanmu di sini... (otomatis tersimpan)"></textarea>
+    <div class="essay-actions">
+      <button class="reveal-btn" onclick="toggleReveal(this)">Lihat Kunci Jawaban</button>
+      <span class="essay-status" id="status11"></span>
+    </div>
+    <div class="grade-btns" id="grade11">
+      <button class="grade-btn benar" onclick="gradeEssay(this,11,true)">✔ Benar</button>
+      <button class="grade-btn salah" onclick="gradeEssay(this,11,false)">✖ Salah</button>
+    </div>
+    <span class="grade-badge" id="badge11"></span>
+    <div class="reveal-answer"><b>glfwInit → glfwCreateWindow → glfwMakeContextCurrent → gladLoadGLLoader → glViewport</b></div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">69</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Pada template minimal, setelah glClearColor dan glClear, langkah berikutnya adalah…</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>glfwSwapBuffers lalu glUseProgram</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>glUseProgram → glBindVertexArray → glDrawElements</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>glDeleteVertexArrays</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>glGenTextures</span></div>
+    </div>
+    <div class="explain">Render loop: glClear → <b>glUseProgram → glBindVertexArray → glDrawElements</b> → glfwSwapBuffers → glfwPollEvents.</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">70</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Urutan cleanup resource yang benar pada template adalah…</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>glDeleteBuffers dulu, baru glDeleteVertexArrays</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>glDeleteVertexArrays(1,&amp;VAO) → glDeleteBuffers(1,&amp;VBO) → glDeleteBuffers(1,&amp;EBO) → glDeleteShader</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>Cukup panggil glDeleteShader</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>Tidak perlu cleanup sama sekali</span></div>
+    </div>
+    <div class="explain">Cleanup: <b>glDeleteVertexArrays</b>, lalu <b>glDeleteBuffers</b> (VBO &amp; EBO), lalu <b>glDeleteShader</b>.</div>
+  </div>
+
+  <div class="q" data-type="tf">
+    <div class="qhead"><div class="qnum">71</div><div class="qtext"><span class="tag">BENAR / SALAH</span>Perbedaan utama glPolygonMode GL_LINE dan GL_FILL adalah wireframe vs model biasa.</div></div>
+    <div class="tf-btns">
+      <button class="tf-btn" data-correct="true">Benar</button>
+      <button class="tf-btn" data-correct="false">Salah</button>
+    </div>
+    <div class="explain"><b>Benar.</b> GL_LINE = wireframe; GL_FILL = model biasa (default).</div>
+  </div>
+
+  <div class="q" data-type="pg">
+    <div class="qhead"><div class="qnum">72</div><div class="qtext"><span class="tag">PILIHAN GANDA</span>Fungsi glUniform4f digunakan untuk…</div></div>
+    <div class="opts">
+      <div class="opt" data-correct="false"><span class="k">A</span><span>Mendapatkan lokasi uniform</span></div>
+      <div class="opt" data-correct="true"><span class="k">B</span><span>Meng-update uniform bertipe vec4 (4 nilai float)</span></div>
+      <div class="opt" data-correct="false"><span class="k">C</span><span>Membuat shader program</span></div>
+      <div class="opt" data-correct="false"><span class="k">D</span><span>Mengikat texture 2D</span></div>
+    </div>
+    <div class="explain"><b>glUniform4f</b> = update uniform vec4. glGetUniformLocation = dapatkan lokasi.</div>
+  </div>
+
+</div>
+
+<footer>
+  Latihan Soal UTS — Grafika Komputer · <span class="pill">72 soal</span> · berdasarkan Cheatsheet UTS OpenGL<br>
+  💡 Soal esai: tulis di kolom → simpan otomatis → klik <b>Lihat Kunci Jawaban</b> → nilai sendiri <b>Benar/Salah</b>.
+</footer>
+
+<script>
+let score = 0, answered = 0, essayScore = 0;
+const essayTotal = document.querySelectorAll('.q[data-type="isian"]').length;
+const maxPG = document.querySelectorAll('.q[data-type="pg"]').length
+            + document.querySelectorAll('.q[data-type="tf"]').length;
+document.getElementById('maxScore').textContent = maxPG;
+document.getElementById('essayMax').textContent = essayTotal;
+
+function bumpScore(){
+  document.getElementById('score').textContent = score;
+  document.getElementById('answered').textContent = answered;
+  document.getElementById('essayScore').textContent = essayScore;
+}
+
+/* ---------- localStorage (simpan jawaban) ---------- */
+const STORE_KEY = 'uts-opengl-latihan-v1';
+
+function saveState(){
+  const data = { essay: {}, pgDone: {}, scores: { score, answered, essayScore } };
+  document.querySelectorAll('.essay-box').forEach(t=>{ data.essay[t.id] = t.value; });
+  document.querySelectorAll('.q[data-type="pg"]').forEach((q,i)=>{ if(q.dataset.done) data.pgDone['pg'+i]=q.dataset.choice; });
+  document.querySelectorAll('.q[data-type="tf"]').forEach((q,i)=>{ if(q.dataset.done) data.pgDone['tf'+i]=q.dataset.choice; });
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify(data)); }catch(e){}
+}
+
+function loadState(){
+  let data;
+  try{ data = JSON.parse(localStorage.getItem(STORE_KEY)||'null'); }catch(e){ data=null; }
+  if(!data) return;
+  // restore essay text
+  if(data.essay){
+    Object.keys(data.essay).forEach(id=>{
+      const el = document.getElementById(id);
+      if(el) el.value = data.essay[id];
+    });
+  }
+  // restore essay grades
+  if(data.grades){
+    Object.keys(data.grades).forEach(n=>{
+      applyGrade(parseInt(n,10), data.grades[n], true);
+    });
+  }
+  // restore PG / TF
+  if(data.pgDone){
+    document.querySelectorAll('.q[data-type="pg"]').forEach((q,i)=>{
+      const c = data.pgDone['pg'+i];
+      if(c!==undefined){
+        const opt = q.querySelectorAll('.opt')[parseInt(c,10)];
+        if(opt) opt.click();
+      }
+    });
+    document.querySelectorAll('.q[data-type="tf"]').forEach((q,i)=>{
+      const c = data.pgDone['tf'+i];
+      if(c!==undefined){
+        const btn = q.querySelectorAll('.tf-btn')[parseInt(c,10)];
+        if(btn) btn.click();
+      }
+    });
+  }
+}
+
+/* ---------- Pilihan ganda ---------- */
+document.querySelectorAll('.q[data-type="pg"]').forEach((q,qi)=>{
+  const opts = q.querySelectorAll('.opt');
+  opts.forEach((opt,oi)=>{
+    opt.addEventListener('click', ()=>{
+      if(q.dataset.done) return;
+      q.dataset.done = "1";
+      q.dataset.choice = oi;
+      answered++;
+      const isCorrect = opt.dataset.correct === 'true';
+      opts.forEach(o=>{
+        o.classList.add('disabled');
+        if(o.dataset.correct === 'true') o.classList.add('correct');
+      });
+      if(isCorrect){ score++; }
+      else { opt.classList.add('wrong'); }
+      q.querySelector('.explain').classList.add('show');
+      bumpScore(); saveState();
+    });
+  });
+});
+
+/* ---------- Benar / Salah ---------- */
+document.querySelectorAll('.q[data-type="tf"]').forEach((q,qi)=>{
+  const btns = q.querySelectorAll('.tf-btn');
+  btns.forEach((btn,bi)=>{
+    btn.addEventListener('click', ()=>{
+      if(q.dataset.done) return;
+      q.dataset.done = "1";
+      q.dataset.choice = bi;
+      answered++;
+      const isCorrect = btn.dataset.correct === 'true';
+      btns.forEach(b=>{
+        b.classList.add('disabled');
+        b.style.pointerEvents='none';
+        if(b.dataset.correct === 'true') b.classList.add('correct');
+      });
+      if(isCorrect){ score++; }
+      else { btn.classList.add('wrong'); }
+      q.querySelector('.explain').classList.add('show');
+      bumpScore(); saveState();
+    });
+  });
+});
+
+/* ---------- Esai: reveal kunci jawaban ---------- */
+function toggleReveal(btn){
+  const q = btn.closest('.q');
+  const ans = q.querySelector('.reveal-answer');
+  const gradeBox = q.querySelector('.grade-btns');
+  const shown = ans.classList.toggle('show');
+  btn.textContent = shown ? 'Sembunyikan Kunci Jawaban' : 'Lihat Kunci Jawaban';
+  if(shown && gradeBox) gradeBox.classList.add('show');
+}
+
+/* ---------- Esai: nilai sendiri (benar/salah) ---------- */
+function applyGrade(n, isCorrect, silent){
+  const badge = document.getElementById('badge'+n);
+  const gradeBox = document.getElementById('grade'+n);
+  if(!badge) return;
+  badge.classList.add('show');
+  if(isCorrect){
+    badge.className = 'grade-badge show benar';
+    badge.textContent = '✔ Dinilai: Benar (+1)';
+  } else {
+    badge.className = 'grade-badge show salah';
+    badge.textContent = '✖ Dinilai: Salah (0)';
+  }
+  if(gradeBox){
+    gradeBox.querySelectorAll('.grade-btn').forEach(b=>b.disabled=true);
+    gradeBox.classList.add('show');
+  }
+  if(!silent){
+    // recompute essay score dari semua badge
+    recountEssay();
+  }
+}
+
+function gradeEssay(btn, n, isCorrect){
+  const key = 'grade_'+n;
+  let data = {};
+  try{ data = JSON.parse(localStorage.getItem(STORE_KEY)||'{}'); }catch(e){}
+  data.grades = data.grades || {};
+  data.grades[n] = isCorrect;
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify(data)); }catch(e){}
+  applyGrade(n, isCorrect, false);
+}
+
+function recountEssay(){
+  let s = 0;
+  for(let n=1; n<=essayTotal; n++){
+    const badge = document.getElementById('badge'+n);
+    if(badge && badge.classList.contains('benar')) s++;
+  }
+  essayScore = s;
+  document.getElementById('essayScore').textContent = essayScore;
+}
+
+/* ---------- Simpan otomatis saat menulis ---------- */
+document.querySelectorAll('.essay-box').forEach(t=>{
+  t.addEventListener('input', ()=>{
+    const n = t.id.replace('essay','');
+    const st = document.getElementById('status'+n);
+    if(st){ st.textContent = '✓ tersimpan'; st.classList.add('saved'); }
+    clearTimeout(t._timer);
+    t._timer = setTimeout(()=>{
+      if(st){ st.textContent=''; st.classList.remove('saved'); }
+      saveState();
+    }, 800);
+  });
+});
+
+/* ---------- Filter ---------- */
+document.querySelectorAll('.tbtn[data-filter]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tbtn[data-filter]').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const f = btn.dataset.filter;
+    document.querySelectorAll('.q').forEach(q=>{
+      q.style.display = (f==='all' || q.dataset.type===f) ? '' : 'none';
+    });
+    document.querySelectorAll('.section').forEach(s=>{
+      let el = s.nextElementSibling, has=false;
+      while(el && !el.classList.contains('section')){
+        if(el.classList.contains('q') && el.style.display!=='none') has=true;
+        el = el.nextElementSibling;
+      }
+      s.style.display = has ? '' : 'none';
+    });
+  });
+});
+
+/* ---------- Reset ---------- */
+function resetAll(){
+  try{ localStorage.removeItem(STORE_KEY); }catch(e){}
+  location.reload();
+}
+
+/* ---------- Init ---------- */
+loadState();
+recountEssay();
+bumpScore();
+</script>
+</body>
+</html>

@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UTS OpenGL — Rangkuman Materi</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root {
+    --color-primary: #4F8CFF;
+    --color-primary-2: #22D3EE;
+    --color-accent: #F472B6;
+    --color-green: #34D399;
+    --color-amber: #FBBF24;
+    --color-background: #0A0E1A;
+    --color-surface: #121829;
+    --color-surface-2: #1B2338;
+    --color-text: #E8ECF7;
+    --color-muted: #8B95B2;
+    --gradient-primary: linear-gradient(135deg, #4F8CFF 0%, #22D3EE 100%);
+    --gradient-warm: linear-gradient(135deg, #F472B6 0%, #FBBF24 100%);
+    --font-heading: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+    --font-body: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Consolas', monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    background: var(--color-background);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    overflow: hidden;
+}
+.slide-deck {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+@media (min-width: 769px) {
+    .slide-deck {
+        max-width: calc(100vh * 16 / 9);
+        max-height: calc(100vw * 9 / 16);
+        margin: auto;
+        position: absolute;
+        inset: 0;
+        box-shadow: 0 0 80px rgba(79,140,255,0.08);
+    }
+}
+.slide {
+    position: absolute;
+    width: 100%; height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 44px 56px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s, transform 0.4s;
+    background:
+        radial-gradient(circle at 15% 12%, rgba(79,140,255,0.10), transparent 42%),
+        radial-gradient(circle at 88% 85%, rgba(34,211,238,0.08), transparent 45%),
+        var(--color-background);
+    overflow: hidden;
+}
+.slide.active { opacity: 1; visibility: visible; }
+.slide-content {
+    width: 100%;
+    max-width: 1180px;
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 18px;
+}
+/* Typography */
+h1, h2, h3 { font-family: var(--font-heading); letter-spacing: -0.02em; }
+.slide-title {
+    font-size: clamp(30px, 5.4vw, 66px);
+    font-weight: 700;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.05;
+}
+.slide-heading {
+    font-size: clamp(22px, 3.4vw, 40px);
+    font-weight: 700;
+    line-height: 1.15;
+}
+.slide-heading .accent {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.eyebrow {
+    font-size: clamp(11px, 1.2vw, 14px);
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--color-primary-2);
+}
+.subtitle { font-size: clamp(14px, 1.8vw, 22px); color: var(--color-muted); line-height: 1.5; }
+p, li { font-size: clamp(12px, 1.4vw, 17px); line-height: 1.6; color: var(--color-text); }
+
+/* Layout grids */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; width: 100%; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; width: 100%; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; width: 100%; }
+.text-left { text-align: left; }
+.left { text-align: left; align-items: flex-start; }
+
+/* Cards */
+.card {
+    background: linear-gradient(160deg, var(--color-surface-2), var(--color-surface));
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    padding: 20px 22px;
+    text-align: left;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.25s, border-color 0.25s;
+}
+.card::before {
+    content: "";
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: var(--gradient-primary);
+}
+.card:hover { transform: translateY(-3px); border-color: rgba(79,140,255,0.35); }
+.card h3 { font-size: clamp(15px, 1.6vw, 20px); margin-bottom: 8px; color: #fff; }
+.card p { color: var(--color-muted); font-size: clamp(12px, 1.25vw, 15px); line-height: 1.55; }
+.card .tag {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-primary-2);
+    background: rgba(34,211,238,0.10);
+    border: 1px solid rgba(34,211,238,0.25);
+    border-radius: 6px;
+    padding: 2px 8px;
+    margin-bottom: 8px;
+}
+.card-amber::before { background: var(--gradient-warm); }
+.card-green::before { background: linear-gradient(135deg, #34D399, #22D3EE); }
+
+/* Metric / big number */
+.metric { text-align: center; padding: 14px 8px; }
+.metric .num {
+    font-family: var(--font-heading);
+    font-size: clamp(30px, 4.6vw, 58px);
+    font-weight: 700;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1;
+}
+.metric .label { color: var(--color-muted); font-size: clamp(11px, 1.2vw, 14px); margin-top: 8px; }
+
+/* Code block */
+pre.code {
+    font-family: var(--font-mono);
+    font-size: clamp(10.5px, 1.05vw, 13.5px);
+    line-height: 1.55;
+    background: #070B14;
+    border: 1px solid rgba(79,140,255,0.18);
+    border-radius: 12px;
+    padding: 16px 18px;
+    text-align: left;
+    color: #C7D2E8;
+    overflow: auto;
+    max-width: 100%;
+    white-space: pre;
+}
+pre.code .kw { color: #F472B6; }
+pre.code .fn { color: #4F8CFF; }
+pre.code .st { color: #34D399; }
+pre.code .cm { color: #5A6685; font-style: italic; }
+pre.code .nm { color: #FBBF24; }
+
+/* Pills / list */
+.pill-list { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.pill {
+    font-size: clamp(11px, 1.2vw, 14px);
+    padding: 7px 14px;
+    border-radius: 999px;
+    background: rgba(79,140,255,0.10);
+    border: 1px solid rgba(79,140,255,0.28);
+    color: var(--color-text);
+    font-family: var(--font-mono);
+}
+ul.ticks { list-style: none; text-align: left; display: flex; flex-direction: column; gap: 8px; }
+ul.ticks li { position: relative; padding-left: 26px; color: var(--color-text); }
+ul.ticks li::before {
+    content: "→"; position: absolute; left: 0; color: var(--color-primary-2); font-weight: 700;
+}
+ul.ticks li b { color: #fff; }
+
+/* Flow diagram (CSS) */
+.flow { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px; width: 100%; }
+.flow .node {
+    background: linear-gradient(160deg, var(--color-surface-2), var(--color-surface));
+    border: 1px solid rgba(79,140,255,0.3);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: clamp(11px, 1.15vw, 14px);
+    font-weight: 600;
+    min-width: 78px;
+}
+.flow .node small { display: block; font-weight: 400; color: var(--color-muted); font-size: 0.8em; margin-top: 3px; font-family: var(--font-mono); }
+.flow .arrow { color: var(--color-primary-2); font-size: 18px; }
+.flow-v { flex-direction: column; }
+.flow-v .arrow { transform: rotate(90deg); }
+
+/* Matrix diagram */
+.matrix-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+}
+.matrix-grid span {
+    background: var(--color-surface-2);
+    border-radius: 6px;
+    padding: 8px 6px;
+    color: var(--color-text);
+}
+.matrix-grid span.hl { background: rgba(79,140,255,0.22); color: #fff; }
+
+/* Chart container */
+.chart-wrap { width: 100%; height: clamp(220px, 42vh, 380px); }
+
+/* Nav */
+.progress-bar {
+    position: fixed; top: 0; left: 0; height: 3px;
+    background: var(--gradient-primary);
+    transition: width 0.3s; z-index: 1000; width: 0;
+}
+.nav-controls {
+    position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 16px; z-index: 1000;
+    background: rgba(18,24,41,0.75);
+    backdrop-filter: blur(10px);
+    padding: 8px 14px; border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.08);
+}
+.nav-btn {
+    background: rgba(255,255,255,0.08); border: none; color: #fff;
+    width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 16px;
+    transition: background 0.2s;
+}
+.nav-btn:hover { background: rgba(79,140,255,0.4); }
+.slide-counter { color: var(--color-muted); font-size: 13px; font-family: var(--font-mono); }
+
+.badge {
+    display: inline-block; font-size: 12px; font-family: var(--font-mono);
+    color: var(--color-green); background: rgba(52,211,153,0.12);
+    border: 1px solid rgba(52,211,153,0.3); border-radius: 6px; padding: 3px 10px;
+}
+.hint { font-size: 12px; color: var(--color-muted); font-family: var(--font-mono); }
+
+@media (max-width: 768px) {
+    .slide { padding: 28px 20px; }
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; gap: 12px; }
+    .slide-title { font-size: clamp(24px, 7vw, 40px); }
+}
+@media (max-width: 480px) {
+    .slide { padding: 20px 14px; }
+    .nav-btn { width: 30px; height: 30px; font-size: 13px; }
+}
+</style>
+</head>
+<body>
+<div class="progress-bar" id="progressBar"></div>
+
+<div class="slide-deck">
+
+    <!-- 1. TITLE -->
+    <div class="slide active">
+        <div class="slide-content">
+            <div class="eyebrow">Grafika Komputer · UTS</div>
+            <h1 class="slide-title">OpenGL: Dari Pipeline<br>sampai Tekstur</h1>
+            <p class="subtitle">Rangkuman materi lengkap — Konsep, Pipeline, dan Implementasi</p>
+            <div class="pill-list" style="margin-top:18px;">
+                <span class="pill">Data Flow</span>
+                <span class="pill">Graphics Pipeline</span>
+                <span class="pill">Hello Triangle</span>
+                <span class="pill">Color Interpolation</span>
+                <span class="pill">Rectangle &amp; EBO</span>
+                <span class="pill">Shaders</span>
+                <span class="pill">Textures</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. PETA MATERI -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Peta Materi</div>
+            <h2 class="slide-heading">7 Topik <span class="accent">UTS</span></h2>
+            <div class="grid-4" style="margin-top:6px;">
+                <div class="card"><span class="tag">01</span><h3>Intro &amp; Data Flow</h3><p>Window, context, GLAD, alur data GPU</p></div>
+                <div class="card"><span class="tag">02</span><h3>Graphics Pipeline</h3><p>Vertex → raster → fragment</p></div>
+                <div class="card"><span class="tag">03</span><h3>Hello Triangle</h3><p>VBO, VAO, shader program</p></div>
+                <div class="card"><span class="tag">04</span><h3>Color Interpolation</h3><p>Multi-VBO &amp; atribut warna</p></div>
+            </div>
+            <div class="grid-3" style="margin-top:16px;">
+                <div class="card card-green"><span class="tag">05</span><h3>Rectangle &amp; EBO</h3><p>4 vertex, indeks, glDrawElements</p></div>
+                <div class="card card-amber"><span class="tag">06</span><h3>Shaders</h3><p>GLSL, uniform, ShaderManager</p></div>
+                <div class="card"><span class="tag">07</span><h3>Textures</h3><p>UV, wrapping, filtering, mipmap</p></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. TOPIK 1 DIVIDER -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Topik 01</div>
+            <h1 class="slide-title">Intro &amp; Data Flow Pipeline</h1>
+            <p class="subtitle">Terminologi · Kode default GLFW · GLAD · Alur data di GPU</p>
+        </div>
+    </div>
+
+    <!-- 4. TERMINOLOGI -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Terminologi</div>
+            <h2 class="slide-heading">Istilah <span class="accent">Kunci</span></h2>
+            <div class="grid-2" style="margin-top:6px;">
+                <div class="card"><h3>Window</h3><p>Jendela utama aplikasi / kontainer aplikasi pada OS. <b>GLFW Window</b> = window untuk GLFW.</p></div>
+                <div class="card"><h3>OpenGL Context</h3><p>Objek yang membawa semua <b>state/instance</b> OpenGL. Menyimpan segala keadaan terkait OpenGL.</p></div>
+                <div class="card"><h3>Objek Buffer</h3><p>Objek OpenGL yang menyimpan array memori <b>tidak terformat</b>, dialokasikan oleh context (disimpan di <b>GPU</b>).</p></div>
+                <div class="card"><h3>Shader / Kernel</h3><p>Program spesial yang membawa data ke GPU. Di OpenGL ditulis dengan <b>bahasa C</b> (GLSL).</p></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. KODE DEFAULT GLFW -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Kode Default GLFW</div>
+            <h2 class="slide-heading">Alur <span class="accent">Program GLFW</span></h2>
+            <ul class="ticks" style="max-width:900px;margin-top:6px;">
+                <li><b>glfwInit()</b> — inisialisasi GLFW</li>
+                <li><b>glfwCreateWindow(w, h, title, monitor, share)</b> — buat window</li>
+                <li><b>glfwMakeContextCurrent(window)</b> — tetapkan context GLFW</li>
+                <li><b>Loop</b> selama <b>!glfwWindowShouldClose(window)</b></li>
+                <li><b>glClear(GL_COLOR_BUFFER_BIT)</b> — bersihkan window, set mode mask warna</li>
+                <li><b>glfwSwapBuffers(window)</b> — tukar buffer depan/belakang (hindari kedip)</li>
+                <li><b>glfwPollEvents()</b> — cek &amp; proses event (mis. klik close)</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 6. GLAD -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">GLAD (Alternatif GLEW)</div>
+            <h2 class="slide-heading">Kenapa Butuh <span class="accent">GLAD?</span></h2>
+            <div class="grid-2">
+                <div class="left">
+                    <ul class="ticks">
+                        <li>Versi OpenGL bermacam-macam → harus cocok dengan <b>dukungan GPU</b></li>
+                        <li>Fungsi OpenGL tidak dikenali saat compile, hanya saat <b>runtime</b></li>
+                        <li>Loader generator open source untuk OpenGL/GLES/EGL/GLX/WGL</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Langkah Pasang</h3>
+                    <p>1. Buka <b>glad.dav1d.de</b> · 2. Pilih C++, OpenGL, profile <b>core</b> · 3. Generate · 4. Pindahkan folder <b>glad</b> &amp; <b>KHR</b> ke include GLFW · 5. Copy <b>glad.c</b> ke project</p>
+                </div>
+            </div>
+            <pre class="code" style="margin-top:6px;"><span class="cm">// include paling awal, sebelum include lain</span>
+<span class="kw">#include</span> <span class="st">&lt;glad/glad.h&gt;</span>
+
+<span class="cm">// letakkan setelah glfwMakeContextCurrent(window);</span>
+<span class="kw">if</span> (!<span class="fn">gladLoadGLLoader</span>((GLADloadproc)<span class="fn">glfwGetProcAddress</span>)) {
+    <span class="fn">fprintf</span>(stderr, <span class="st">"Failed to initialize GLAD"</span>);
+    <span class="kw">return</span> -<span class="nm">1</span>;
+}</pre>
+        </div>
+    </div>
+
+    <!-- 7. DATA FLOW 3 TAHAP -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Data Flow Pipeline</div>
+            <h2 class="slide-heading">Data Mengalir <span class="accent">3 Tahap</span></h2>
+            <div class="flow" style="margin-top:8px;">
+                <div class="node">Upload<small>RAM → GPU</small></div>
+                <span class="arrow">→</span>
+                <div class="node">Proses<small>di GPU</small></div>
+                <span class="arrow">→</span>
+                <div class="node">Output<small>ke Screen</small></div>
+            </div>
+            <div class="grid-3" style="margin-top:14px;">
+                <div class="card"><h3>1. Upload</h3><p>Data vertex ditransfer dari RAM ke memory GPU (buffer). Sebaiknya <b>sekali saja</b> karena besar. Kernel = <b>shader</b>.</p></div>
+                <div class="card"><h3>2. Proses</h3><p>Kernel di-<i>instantiate</i> per vertex. Tiap core GPU jalankan thread. Bersifat <b>paralel</b> → butuh compile/link dinamis saat runtime.</p></div>
+                <div class="card"><h3>3. Output</h3><p>Video card terhubung ke monitor; penggambaran ke layar ditangani langsung oleh <b>GPU</b>.</p></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8. TOPIK 2 DIVIDER -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Topik 02</div>
+            <h1 class="slide-title">Graphics Pipeline</h1>
+            <p class="subtitle">Koordinat 3D → 2D → pixel berwarna</p>
+        </div>
+    </div>
+
+    <!-- 9. GRAPHICS PIPELINE STAGES -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Graphics Pipeline</div>
+            <h2 class="slide-heading">Tahapan <span class="accent">Pipeline</span></h2>
+            <div class="flow" style="margin-top:8px;">
+                <div class="node">Vertex<small>Shader</small></div>
+                <span class="arrow">→</span>
+                <div class="node">Shape<small>Assembly</small></div>
+                <span class="arrow">→</span>
+                <div class="node">Raster<small>ization</small></div>
+                <span class="arrow">→</span>
+                <div class="node">Fragment<small>Shader</small></div>
+            </div>
+            <div class="grid-2" style="margin-top:14px;">
+                <div class="card"><h3>Vertex Shader</h3><p>Memproses vertex data → <b>VBO</b>. Ubah koordinat 3D vertex ke koordinat 3D lain; bisa proses atribut dasar.</p></div>
+                <div class="card"><h3>Shape Assembly</h3><p>Mengambil vertex dari vertex shader &amp; merakitnya jadi primitif (GL_POINT, segitiga, dll).</p></div>
+                <div class="card"><h3>Rasterization</h3><p>Mendiskritkan primitif → pixel pada layar. Memilih pixel mana yang berasosiasi dengan <b>base color</b> &amp; <b>depth</b>.</p></div>
+                <div class="card"><h3>Fragment Shader</h3><p>Didahului <b>clipping</b> (buang fragmen di luar). Menghitung <b>warna final</b> pixel termasuk efek cahaya/bayangan.</p></div>
+            </div>
+            <p class="hint" style="margin-top:4px;">+ Tessellation &amp; Geometry Shader (opsional, belum dibahas) · OpenGL pakai sistem koordinat <b>tangan kanan</b></p>
+        </div>
+    </div>
+
+    <!-- 10. NDC & VIEWPORT -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Koordinat &amp; Viewport</div>
+            <h2 class="slide-heading">NDC &amp; <span class="accent">glViewport</span></h2>
+            <div class="grid-2">
+                <div class="card">
+                    <h3>Normalized Device Coordinates</h3>
+                    <p>Vertex shader harus output dalam <b>NDC</b>. Range koordinat OpenGL <b>-1 s/d 1</b>. Agar terlihat 2D, <b>z = 0</b>.</p>
+                </div>
+                <div class="card">
+                    <h3>glViewport(x, y, w, h)</h3>
+                    <p>Memberi tahu OpenGL area menggambar. Titik (0,0) = kiri bawah. Contoh window (800,600), titik (0.5,0.5) dipetakan ke layar (400,300).</p>
+                </div>
+            </div>
+            <div style="display:flex;gap:20px;align-items:center;justify-content:center;margin-top:8px;flex-wrap:wrap;">
+                <div class="matrix-grid">
+                    <span>-0.5</span><span>-0.5</span><span class="hl">0.0</span>
+                    <span>0.5</span><span>-0.5</span><span class="hl">0.0</span>
+                    <span>0.0</span><span>0.5</span><span class="hl">0.0</span>
+                </div>
+                <p class="hint">← vertices NDC (x, y, z=0)</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 11. TOPIK 3 DIVIDER -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Topik 03</div>
+            <h1 class="slide-title">Hello Triangle!</h1>
+            <p class="subtitle">VBO · Shader Program · VAO · Menggambar</p>
+        </div>
+    </div>
+
+    <!-- 12. STEP HELLO TRIANGLE -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Langkah Membuat Segitiga</div>
+            <h2 class="slide-heading">Urutan <span class="accent">Step 0–7</span></h2>
+            <div class="grid-4">
+                <div class="card"><span class="tag">Step 0</span><h3>Pilih versi GL</h3><p>glfwWindowHint versi 3.3 core profile</p></div>
+                <div class="card"><span class="tag">Step 1</span><h3>Cek GLAD</h3><p>gladLoadGLLoader</p></div>
+                <div class="card"><span class="tag">Step 2</span><h3>glViewport</h3><p>glViewport(0,0,640,480)</p></div>
+                <div class="card"><span class="tag">Step 3</span><h3>Definisikan vertex</h3><p>float vertices[] NDC</p></div>
+            </div>
+            <div class="grid-4" style="margin-top:14px;">
+                <div class="card"><span class="tag">Step 4</span><h3>Buat Shader</h3><p>VS &amp; FS → compile</p></div>
+                <div class="card"><span class="tag">Step 5</span><h3>Buat VBO</h3><p>GenBuffers, BufferData</p></div>
+                <div class="card"><span class="tag">Step 6</span><h3>Buat VAO</h3><p>AttribPointer, Enable</p></div>
+                <div class="card card-green"><span class="tag">Step 7</span><h3>Gambar!</h3><p>glDrawArrays</p></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 13. VERTEX & FRAGMENT SHADER -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Shader Dasar / GLSL</div>
+            <h2 class="slide-heading">Vertex &amp; <span class="accent">Fragment Shader</span></h2>
+            <div class="grid-2">
+                <div class="card">
+                    <span class="tag">Vertex Shader</span>
+                    <pre class="code"><span class="kw">#version</span> <span class="nm">330</span> core
+<span class="kw">in</span> <span class="kw">vec3</span> aPos;
+<span class="kw">void</span> <span class="fn">main</span>() {
+    gl_Position = <span class="fn">vec4</span>(aPos.x, aPos.y, aPos.z, <span class="nm">1.0</span>);
+}</pre>
+                </div>
+                <div class="card card-amber">
+                    <span class="tag">Fragment Shader</span>
+                    <pre class="code"><span class="kw">#version</span> <span class="nm">330</span> core
+<span class="kw">out</span> <span class="kw">vec4</span> fragColor;
+<span class="kw">void</span> <span class="fn">main</span>() {
+    fragColor = <span class="fn">vec4</span>(<span class="nm">1.0</span>, <span class="nm">1.0</span>, <span class="nm">0.0</span>, <span class="nm">1.0</span>);
+}</pre>
+                </div>
+            </div>
+            <p class="hint">"in" = input · "out" = output · warna 0–1 · aPos.w default 1.0 · alpha 1.0 = terlihat</p>
+        </div>
+    </div>
+
+    <!-- 14. VBO VAO KODE -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Buffer &amp; Attribut</div>
+            <h2 class="slide-heading">VBO, VAO, dan <span class="accent">Menggambar</span></h2>
+            <div class="grid-2">
+                <div class="card">
+                    <span class="tag">VBO — Vertex Buffer Object</span>
+                    <pre class="code">GLuint VBO;
+<span class="fn">glGenBuffers</span>(<span class="nm">1</span>, &amp;VBO);
+<span class="fn">glBindBuffer</span>(GL_ARRAY_BUFFER, VBO);
+<span class="fn">glBufferData</span>(GL_ARRAY_BUFFER,
+   <span class="kw">sizeof</span>(vertices), vertices,
+   GL_STATIC_DRAW);</pre>
+                </div>
+                <div class="card card-green">
+                    <span class="tag">VAO — Vertex Array Object</span>
+                    <pre class="code">GLuint VAO;
+<span class="fn">glGenVertexArrays</span>(<span class="nm">1</span>, &amp;VAO);
+<span class="fn">glBindVertexArray</span>(VAO);
+<span class="fn">glVertexAttribPointer</span>(<span class="nm">0</span>, <span class="nm">3</span>, GL_FLOAT,
+   GL_FALSE, <span class="nm">3</span>*<span class="kw">sizeof</span>(<span class="kw">float</span>), (GLvoid*)<span class="nm">0</span>);
+<span class="fn">glEnableVertexAttribArray</span>(<span class="nm">0</span>);</pre>
+                </div>
+            </div>
+            <pre class="code" style="margin-top:10px;"><span class="cm">// Render loop</span>
+<span class="kw">while</span> (!<span class="fn">glfwWindowShouldClose</span>(window)) {
+    <span class="fn">glClear</span>(GL_COLOR_BUFFER_BIT);
+    <span class="fn">glUseProgram</span>(shaderProgram);
+    <span class="fn">glBindVertexArray</span>(VAO);
+    <span class="fn">glDrawArrays</span>(GL_TRIANGLES, <span class="nm">0</span>, <span class="nm">3</span>);
+    <span class="fn">glfwSwapBuffers</span>(window);
+    <span class="fn">glfwPollEvents</span>();
+}</pre>
+        </div>
+    </div>
+
+    <!-- 15. VAO CONCEPT -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Kenapa VAO Penting</div>
+            <h2 class="slide-heading">VAO = <span class="accent">Konfigurasi Sekali</span></h2>
+            <div class="grid-2">
+                <div class="left">
+                    <ul class="ticks">
+                        <li>Banyak objek 3D, tiap objek punya banyak triangle &amp; vertex</li>
+                        <li>Tiap vertex bisa simpan posisi, koordinat tekstur, normal</li>
+                        <li>VAO menyimpan <b>urutan konfigurasi</b> semua objek</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Keuntungan</h3>
+                    <p>Saat mengkonfigurasi <b>vertex attrib pointer</b>, cukup panggil <b>sekali</b>. Saat ingin menggambar objek, cukup <b>bind VAO</b> yang sesuai — hemat &amp; rapi.</p>
+                </div>
+            </div>
+            <div class="flow" style="margin-top:8px;">
+                <div class="node">VBO<small>data mentah</small></div>
+                <span class="arrow">→</span>
+                <div class="node">VAO<small>cara baca</small></div>
+                <span class="arrow">→</span>
+                <div class="node">Draw<small>1 panggilan</small></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 16. CALLBACK VIEWPORT -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Bonus: Viewport Responsif</div>
+            <h2 class="slide-heading">glViewport via <span class="accent">Callback</span></h2>
+            <pre class="code" style="max-width:820px;"><span class="kw">void</span> <span class="fn">framebuffer_size_callback</span>(GLFWwindow* window, <span class="kw">int</span> width, <span class="kw">int</span> height)
+{
+    <span class="fn">glViewport</span>(<span class="nm">0</span>, <span class="nm">0</span>, width, height);
+}
+
+<span class="fn">glfwSetFramebufferSizeCallback</span>(window, framebuffer_size_callback);</pre>
+            <p class="subtitle" style="font-size:15px;">→ Segitiga menyesuaikan otomatis saat window di-resize (viewport tidak hardcode)</p>
+        </div>
+    </div>
+
+    <!-- 17. TOPIK 4 DIVIDER -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Topik 04</div>
+            <h1 class="slide-title">Triangle Color Interpolation</h1>
+            <p class="subtitle">Multi-VBO · Atribut warna · Interpolasi warna</p>
+        </div>
+    </div>
+
+    <!-- 18. COLOR INTERPOLATION -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Color Interpolation</div>
+            <h2 class="slide-heading">Warna per <span class="accent">Vertex</span></h2>
+            <div class="grid-2">
+                <div class="card">
+                    <span class="tag">Vertex Data Baru</span>
+                    <p>Tiap vertex simpan <b>3 nilai posisi + 3 nilai warna</b> → butuh <b>VBO id 1</b> (id 0 untuk posisi).</p>
+                    <pre class="code" style="margin-top:8px;"><span class="kw">float</span> colors[] = {
+    <span class="nm">1.0</span>f, <span class="nm">0.0</span>f, <span class="nm">0.0</span>f,  <span class="cm">// merah</span>
+    <span class="nm">0.0</span>f, <span class="nm">1.0</span>f, <span class="nm">0.0</span>f,  <span class="cm">// hijau</span>
+    <span class="nm">0.0</span>f, <span class="nm">0.0</span>f, <span class="nm">1.0</span>f   <span class="cm">// biru</span>
+};</pre>
+                </div>
+                <div class="card card-amber">
+                    <span class="tag">Modifikasi Shader</span>
+                    <pre class="code"><span class="cm">// Vertex Shader</span>
+layout(location = <span class="nm">0</span>) <span class="kw">in</span> <span class="kw">vec3</span> aPos;
+layout(location = <span class="nm">1</span>) <span class="kw">in</span> <span class="kw">vec3</span> acolor;
+<span class="kw">out</span> <span class="kw">vec3</span> color;
+<span class="cm">// Fragment Shader</span>
+<span class="kw">in</span> <span class="kw">vec3</span> color;
+fragColor = <span class="fn">vec4</span>(color.x, color.y, color.z, <span class="nm">1.0</span>);</pre>
+                </div>
+            </div>
+            <p class="hint">Layout location 0 &amp; 1 mengacu pada index vertex · hasil akhir = gradasi warna antar vertex</p>
+        </div>
+    </div>
+
+    <!-- 19. COLOR VBO + VAO -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Setup Multi-VBO</div>
+            <h2 class="slide-heading">Dua VBO dalam <span class="accent">Satu VAO</span></h2>
+            <pre class="code" style="max-width:900px;"><span class="cm">// Dua VBO terpisah</span>
+GLuint verVBO, colVBO;
+<span class="fn">glGenBuffers</span>(<span class="nm">1</span>, &amp;verVBO); <span class="fn">glBindBuffer</span>(GL_ARRAY_BUFFER, verVBO);
+<span class="fn">glBufferData</span>(GL_ARRAY_BUFFER, <span class="kw">sizeof</span>(vertices), vertices, GL_STATIC_DRAW);
+<span class="fn">glGenBuffers</span>(<span class="nm">1</span>, &amp;colVBO); <span class="fn">glBindBuffer</span>(GL_ARRAY_BUFFER, colVBO);
+<span class="fn">glBufferData</span>(GL_ARRAY_BUFFER, <span class="kw">sizeof</span>(colors), colors, GL_STATIC_DRAW);
+
+<span class="cm">// Keduanya dikonfigurasi di dalam VAO yang sama</span>
+<span class="fn">glBindVertexArray</span>(VAO);
+<span class="fn">glBindBuffer</span>(GL_ARRAY_BUFFER, verVBO);
+<span class="fn">glVertexAttribPointer</span>(<span class="nm">0</span>, <span class="nm">3</span>, GL_FLOAT, GL_FALSE, <span class="nm">0</span>, (GLvoid*)<span class="nm">0</span>);
+<span class="fn">glBindBuffer</span>(GL_ARRAY_BUFFER, colVBO);
+<span class="fn">glVertexAttribPointer</span>(<span class="nm">1</span>, <span class="nm">3</span>, GL_FLOAT, GL_FALSE, <span class="nm">0</span>, (GLvoid*)<span class="nm">0</span>);
+<span class="fn">glEnableVertexAttribArray</span>(<span class="nm">0</span>);
+<span class="fn">glEnableVertexAttribArray</span>(<span class="nm">1</span>);</pre>
+            <p class="hint">Render tidak berubah · saat cleanup hapus kedua VBO: glDeleteBuffers(1, &amp;verVBO); glDeleteBuffers(1, &amp;colVBO);</p>
+        </div>
+    </div>
+
+    <!-- 20. TOPIK 5 DIVIDER -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Topik 05</div>
+            <h1 class="slide-title">Rectangle &amp; EBO</h1>
+            <p class="subtitle">Kotak dari 2 segitiga · 4 vertex · glDrawElements</p>
+        </div>
+    </div>
+
+    <!-- 21. RECTANGLE KONSEP -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Persegi Panjang</div>
+            <h2 class="slide-heading">Kotak = <span class="accent">2 Segitiga Berhimpit</span></h2>
+            <div class="grid-3">
+                <div class="metric"><div class="num">4</div><div class="label">Vertex (bukan 6) — dipakai bersama</div></div>
+                <div class="metric"><div class="num">2</div><div class="label">Segitiga penyusun kotak</div></div>
+                <div class="metric"><div class="num">1</div><div class="label">VBO cukup (tak perlu tambah)</div></div>
+            </div>
+            <div class="grid-2" style="margin-top:12px;">
+                <div class="card">
+                    <h3>Masalah: Hardcode</h3>
+                    <p>Hardcode rawan bug. Ganti <b>9 * sizeof(GLfloat)</b> menjadi <b>sizeof(vertices)</b>.</p>
+                </div>
+                <div class="card card-green">
+                    <h3>Solusi: EBO</h3>
+                    <p>Simpan <b>indeks vertex</b>. 4 titik diakses via indeks unik untuk membentuk 2 segitiga.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 22. EBO CODE -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Element Buffer Object</div>
+            <h2 class="slide-heading">Indeks <span class="accent">Vertex</span></h2>
+            <div class="grid-2">
+                <div class="card">
+                    <span class="tag">Data Vertex + Indeks</span>
+                    <pre class="code"><span class="kw">float</span> vertices[] = {
+ <span class="nm">0.0</span>f,-<span class="nm">0.5</span>f,<span class="nm">0.0</span>f,   <span class="cm">// 0</span>
+ <span class="nm">0.0</span>f, <span class="nm">0.5</span>f,<span class="nm">0.0</span>f,   <span class="cm">// 1</span>
+ <span class="nm">0.5</span>f,-<span class="nm">0.5</span>f,<span class="nm">0.0</span>f,   <span class="cm">// 2</span>
+ <span class="nm">0.5</span>f, <span class="nm">0.5</span>f,<span class="nm">0.0</span>f }; <span class="cm">// 3</span>
+<span class="kw">unsigned int</span> indices[] = {
+    <span class="nm">0</span>,<span class="nm">1</span>,<span class="nm">2</span>,   <span class="cm">// Segitiga 1</span>
+    <span class="nm">1</span>,<span class="nm">2</span>,<span class="nm">3</span>    <span class="cm">// Segitiga 2</span>
+};</pre>
+                </div>
+                <div class="card card-green">
+                    <span class="tag">Setup EBO</span>
+                    <pre class="code">GLuint EBO;
+<span class="fn">glGenBuffers</span>(<span class="nm">1</span>, &amp;EBO);
+<span class="fn">glBindBuffer</span>(GL_ELEMENT_ARRAY_BUFFER, EBO);
+<span class="fn">glBufferData</span>(GL_ELEMENT_ARRAY_BUFFER,
+    <span class="kw">sizeof</span>(indices), indices,
+    GL_STATIC_DRAW);
+
+<span class="cm">// Gambar:</span>
+<span class="fn">glDrawElements</span>(GL_TRIANGLES,
+    <span class="kw">sizeof</span>(indices), GL_UNSIGNED_INT, <span class="nm">0</span>);</pre>
+                </div>
+            </div>
+            <p class="hint">Urutan: bind <b>VAO</b> dulu → baru <b>EBO</b> · EBO pakai tipe GL_ELEMENT_ARRAY_BUFFER</p>
+        </div>
+    </div>
+
+    <!-- 23. WIREFRAME + STRUKTUR ARRAY -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Wireframe &amp; Struktur Array</div>
+            <h2 class="slide-heading">Render Mode &amp; <span class="accent">Interleaved Array</span></h2>
+            <div class="grid-2">
+                <div class="card">
+                    <span class="tag">Polygon Mode</span>
+                    <pre class="code"><span class="cm">// wireframe</span>
+<span class="fn">glPolygonMode</span>(GL_FRONT_AND_BACK, GL_LINE);
+<span class="cm">// default / filled</span>
+<span class="fn">glPolygonMode</span>(GL_FRONT_AND_BACK, GL_FILL);</pre>
+                    <p style="margin-top:8px;">Panggil sebelum render loop.</p>
+                </div>
+                <div class="card card-amber">
+                    <span class="tag">Gabung Posisi + Warna</span>
+                    <pre class="code"><span class="kw">float</span> vertices[] = {
+ <span class="cm">//posisi        //warna</span>
+ <span class="nm">0.0</span>f,-<span class="nm">0.5</span>f,<span class="nm">0.0</span>f, <span class="nm">1.0</span>f,<span class="nm">0.0</span>f,<span class="nm">0.0</span>f,
+ <span class="nm">0.0</span>f, <span class="nm">0.5</span>f,<span class="nm">0.0</span>f, <span class="nm">0.0</span>f,<span class="nm">1.0</span>f,<span class="nm">0.0</span>f,
+};
+<span class="cm">// stride 6, offset warna di index 3</span>
+<span class="fn">glVertexAttribPointer</span>(<span class="nm">0</span>,<span class="nm">3</span>,GL_FLOAT,GL_FALSE,
+   <span class="nm">6</span>*<span class="kw">sizeof</span>(<span class="kw">float</span>), (GLvoid*)<span class="nm">0</span>);
+<span class="fn">glVertexAttribPointer</span>(<span class="nm">1</span>,<span class="nm">3</span>,GL_FLOAT,GL_FALSE,
+   <span class="nm">6</span>*<span class="kw">sizeof</span>(<span class="kw">float</span>), (GLvoid*)(<span class="nm">3</span>*<span class="kw">sizeof</span>(<span class="kw">float</span>)));</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 24. TOPIK 6 DIVIDER -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Topik 06</div>
+            <h1 class="slide-title">Shaders</h1>
+            <p class="subtitle">GLSL · Layout input · Uniform · ShaderManager</p>
+        </div>
+    </div>
+
+    <!-- 25. SHADER KONSEP -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Konsep Shader</div>
+            <h2 class="slide-heading">Program di <span class="accent">GPU</span></h2>
+            <div class="grid-3">
+                <div class="card"><h3>Terpisah</h3><p>Program shader berjalan di <b>GPU</b>, terpisah dari program utama. Komunikasi hanya via <b>input/output</b>.</p></div>
+                <div class="card"><h3>GLSL vs HLSL</h3><p>OpenGL pakai <b>GLSL</b>, DirectX pakai <b>HLSL</b>. Ditulis seperti bahasa C, kuat untuk vektor &amp; matriks.</p></div>
+                <div class="card"><h3>Struktur</h3><p>#version → input/output/uniform → <b>main()</b>. Di main() variabel diolah.</p></div>
+            </div>
+            <div class="pill-list" style="margin-top:10px;">
+                <span class="pill">int</span><span class="pill">float</span><span class="pill">double</span><span class="pill">uint</span><span class="pill">bool</span>
+                <span class="pill">vecn</span><span class="pill">bvecn</span><span class="pill">ivecn</span><span class="pill">uvecn</span><span class="pill">dvecn</span>
+            </div>
+            <p class="hint">Akses komponen vektor: .x .y .z .w · contoh: vec4 v2 = vec4(v1, 0.0, 0.0);</p>
+        </div>
+    </div>
+
+    <!-- 26. LAYOUT INPUT -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Layout pada Input</div>
+            <h2 class="slide-heading">layout(location = <span class="accent">0</span>)</h2>
+            <div class="grid-2">
+                <div class="card">
+                    <h3>Fungsi Layout</h3>
+                    <p>Mendefinisikan bagaimana vertex data terorganisir. Kita beri <b>lokasi metadata spesifik</b> agar bisa mengatur atribut vertex dari CPU.</p>
+                </div>
+                <div class="card card-green">
+                    <h3>Contoh</h3>
+                    <p>location = 0 → nilai 0 dikirim OpenGL via <b>glGetAttribLocation</b> pada lokasi id ke-0.</p>
+                </div>
+            </div>
+            <pre class="code" style="max-width:900px;margin-top:8px;"><span class="cm">// Vertex Shader — kirim warna ke fragment</span>
+<span class="kw">#version</span> <span class="nm">330</span> core
+layout (location = <span class="nm">0</span>) <span class="kw">in</span> <span class="kw">vec3</span> aPos;
+<span class="kw">out</span> <span class="kw">vec4</span> vertexColor;
+<span class="kw">void</span> <span class="fn">main</span>() {
+    gl_Position = <span class="fn">vec4</span>(aPos, <span class="nm">1.0</span>);
+    vertexColor = <span class="fn">vec4</span>(<span class="nm">0.0</span>, <span class="nm">1.0</span>, <span class="nm">0.0</span>, <span class="nm">1.0</span>);
+}</pre>
+        </div>
+    </div>
+
+    <!-- 27. UNIFORM -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Uniform</div>
+            <h2 class="slide-heading">Kirim Data <span class="accent">Langsung ke Shader</span></h2>
+            <div class="grid-2">
+                <div class="left">
+                    <ul class="ticks">
+                        <li>Shader "suka menyendiri" — komunikasi terbatas in-out</li>
+                        <li><b>Uniform</b> = kirim data tanpa mekanisme in-out</li>
+                        <li>Sifat <b>global &amp; unik</b> per shader program</li>
+                        <li>Nilainya tetap sampai di-update/direset</li>
+                    </ul>
+                </div>
+                <div class="card card-amber">
+                    <span class="tag">Deklarasi Uniform</span>
+                    <pre class="code"><span class="kw">uniform</span> <span class="kw">vec4</span> mycolor;
+<span class="kw">void</span> <span class="fn">main</span>() {
+    fragColor = mycolor;
+}</pre>
+                </div>
+            </div>
+            <pre class="code" style="max-width:900px;margin-top:6px;"><span class="cm">// Animasi warna gelap→terang di render loop (setelah glUseProgram)</span>
+<span class="kw">float</span> timeValue = <span class="fn">glfwGetTime</span>();
+<span class="kw">float</span> greenValue = <span class="fn">sin</span>(timeValue) / <span class="nm">2.0</span>f + <span class="nm">0.5</span>f;
+<span class="kw">int</span> loc = <span class="fn">glGetUniformLocation</span>(shaderProgram, <span class="st">"mycolor"</span>);
+<span class="fn">glUniform4f</span>(loc, <span class="nm">0.0</span>f, greenValue, <span class="nm">0.0</span>f, <span class="nm">1.0</span>f);</pre>
+        </div>
+    </div>
+
+    <!-- 28. SHADERMANAGER -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">ShaderManager (Singleton)</div>
+            <h2 class="slide-heading">Rapikan <span class="accent">Pembacaan Shader</span></h2>
+            <div class="grid-2">
+                <div class="card">
+                    <h3>Struktur Class</h3>
+                    <p><b>ShaderManager.h</b> — deklarasi (singleton: instance, shaderProgram). <b>ShaderManager.cpp</b> — implementasi.</p>
+                    <pre class="code" style="margin-top:8px;"><span class="kw">class</span> ShaderManager {
+    <span class="kw">static</span> ShaderManager* instance;
+    <span class="kw">unsigned int</span> shaderProgram;
+<span class="kw">public</span>:
+    <span class="kw">static</span> ShaderManager* <span class="fn">GetInstance</span>();
+    <span class="kw">void</span> <span class="fn">compileAndLink</span>(<span class="kw">const char</span>* vs, <span class="kw">const char</span>* fs);
+    <span class="kw">unsigned int</span> <span class="fn">getShaderProgram</span>();
+    <span class="kw">void</span> <span class="fn">destroy</span>();
+};</pre>
+                </div>
+                <div class="card card-green">
+                    <h3>Cara Pakai</h3>
+                    <pre class="code"><span class="cm">// compile dari file .vs / .fs</span>
+ShaderManager::<span class="fn">GetInstance</span>()
+  -&gt;<span class="fn">compileAndLink</span>(<span class="st">"Test.vs"</span>, <span class="st">"Test.fs"</span>);
+
+<span class="cm">// ambil program</span>
+<span class="fn">glUseProgram</span>(ShaderManager
+  ::<span class="fn">GetInstance</span>()-&gt;<span class="fn">getShaderProgram</span>());
+
+<span class="cm">// hapus resource</span>
+ShaderManager::<span class="fn">GetInstance</span>()-&gt;<span class="fn">destroy</span>();</pre>
+                </div>
+            </div>
+            <p class="hint">compileAndLink: readShader → glCreateShader → Source → Compile → glCreateProgram → Attach → Link → DeleteShader</p>
+        </div>
+    </div>
+
+    <!-- 29. TOPIK 7 DIVIDER -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Topik 07</div>
+            <h1 class="slide-title">Textures</h1>
+            <p class="subtitle">UV mapping · Wrapping · Filtering · Mipmaps · Rectangle with texture</p>
+        </div>
+    </div>
+
+    <!-- 30. TEXTURE KONSEP + UV -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Konsep Texture</div>
+            <h2 class="slide-heading">Gambar Pembungkus <span class="accent">Model 3D</span></h2>
+            <div class="grid-3">
+                <div class="card"><h3>Apa itu Texture?</h3><p>Gambar pembungkus model 3D. Berbentuk 2D (ada juga 1D/3D).</p></div>
+                <div class="card"><h3>Loader</h3><p>Butuh <b>SOIL</b> atau <b>stb_image.h</b> untuk baca file jpg/png.</p></div>
+                <div class="card"><h3>UV Mapping</h3><p>Memetakan tekstur ke setiap vertex objek. <b>U</b> &amp; <b>V</b> = simbol koordinat tekstur.</p></div>
+            </div>
+            <div style="display:flex;justify-content:center;gap:24px;align-items:center;margin-top:14px;flex-wrap:wrap;">
+                <div class="matrix-grid" style="grid-template-columns:repeat(2,1fr);">
+                    <span class="hl">(0,0)</span><span>(0,1)</span>
+                    <span>(1,0)</span><span class="hl">(1,1)</span>
+                </div>
+                <p class="hint">← koordinat UV per vertex</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 31. WRAPPING + FILTERING (diagram) -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Wrapping &amp; Filtering</div>
+            <h2 class="slide-heading">Di Luar (0,0)–(1,1) &amp; <span class="accent">Interpolasi Texel</span></h2>
+            <div class="grid-2">
+                <div class="card">
+                    <h3>Texture Wrapping</h3>
+                    <ul class="ticks" style="margin-top:6px;">
+                        <li><b>GL_REPEAT</b> — ulang sepanjang x &amp; y (default)</li>
+                        <li><b>GL_MIRRORED_REPEAT</b> — seperti repeat tapi dibalik</li>
+                        <li><b>GL_CLAMP_TO_EDGE</b> — ditarik sampai border</li>
+                        <li><b>GL_CLAMP_TO_BORDER</b> — diberi warna di luar</li>
+                    </ul>
+                </div>
+                <div class="card card-amber">
+                    <h3>Texture Filtering</h3>
+                    <ul class="ticks" style="margin-top:6px;">
+                        <li><b>GL_LINEAR</b> — interpolasi linier piksel terdekat</li>
+                        <li><b>GL_NEAREST</b> — pilih piksel terdekat</li>
+                    </ul>
+                    <pre class="code" style="margin-top:8px;"><span class="fn">glTexParameteri</span>(GL_TEXTURE_2D,
+  GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+<span class="fn">glTexParameteri</span>(GL_TEXTURE_2D,
+  GL_TEXTURE_MAG_FILTER, GL_LINEAR);</pre>
+                </div>
+            </div>
+            <p class="hint">Koordinat tekstur tidak bergantung resolusi, tapi nilai float (disebut <b>texel</b>)</p>
+        </div>
+    </div>
+
+    <!-- 32. MIPMAP CHART -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Mipmaps</div>
+            <h2 class="slide-heading">Tiap Level <span class="accent">½ Ukuran</span> Berikutnya</h2>
+            <div class="grid-2" style="align-items:center;">
+                <div class="chart-wrap" style="height:clamp(200px,38vh,320px);">
+                    <canvas id="mipmapChart"></canvas>
+                </div>
+                <div class="left">
+                    <ul class="ticks">
+                        <li>Kumpulan tekstur; tiap tekstur berikutnya <b>2× lebih kecil</b></li>
+                        <li>Mengatasi objek jauh agar fragmen warna tepat</li>
+                        <li>Hemat memory (objek kecil tak pakai tekstur resolusi tinggi)</li>
+                    </ul>
+                </div>
+            </div>
+            <pre class="code" style="max-width:900px;margin-top:6px;"><span class="fn">glTexParameteri</span>(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+<span class="fn">glTexParameteri</span>(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);</pre>
+        </div>
+    </div>
+
+    <!-- 33. MIPMAP JENIS TABLE -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Jenis Mipmap</div>
+            <h2 class="slide-heading">4 Mode <span class="accent">Mipmap</span></h2>
+            <div class="grid-2">
+                <div class="card"><span class="tag">GL_NEAREST_MIPMAP_NEAREST</span><p>Ambil mipmap terdekat + interpolasi tetangga terdekat.</p></div>
+                <div class="card"><span class="tag">GL_LINEAR_MIPMAP_NEAREST</span><p>Ambil level mipmap terdekat, sampel dengan interpolasi linier.</p></div>
+                <div class="card card-amber"><span class="tag">GL_NEAREST_MIPMAP_LINEAR</span><p>Interpolasi linier antara 2 mipmap + sampel tetangga terdekat.</p></div>
+                <div class="card card-amber"><span class="tag">GL_LINEAR_MIPMAP_LINEAR</span><p>Interpolasi linier antara 2 mipmap terdekat + sampel linier.</p></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 34. RECT + TEXTURE STEPS -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Rectangle with Texture</div>
+            <h2 class="slide-heading">8 Step <span class="accent">Tekstur Kotak</span></h2>
+            <div class="grid-4">
+                <div class="card"><span class="tag">1–2</span><h3>Asset &amp; UV</h3><p>Tambah gambar + stb_image.h · tambah uv koordinat di vertex</p></div>
+                <div class="card"><span class="tag">3–4</span><h3>Shader</h3><p>sampler2D myTexture · compile/link via ShaderManager</p></div>
+                <div class="card"><span class="tag">5–6</span><h3>Texture</h3><p>gen/bind · wrapping &amp; filtering · stbi_load → TexImage2D</p></div>
+                <div class="card"><span class="tag">7–8</span><h3>Atribut &amp; Render</h3><p>AttribPointer texcoord · glBindTexture di render loop</p></div>
+            </div>
+            <pre class="code" style="max-width:960px;margin-top:10px;"><span class="cm">// Vertex: posisi + warna + uv (8 float per vertex, stride 8*sizeof(float))</span>
+<span class="kw">unsigned char</span>* data = <span class="fn">stbi_load</span>(fileTex.<span class="fn">c_str</span>(), &amp;w, &amp;h, &amp;ch, <span class="nm">0</span>);
+<span class="fn">stbi_set_flip_vertically_on_load</span>(<span class="kw">true</span>);  <span class="cm">// OpenGL vs gambar beda sumbu Y</span>
+<span class="fn">glTexImage2D</span>(GL_TEXTURE_2D, <span class="nm">0</span>, GL_RGB, w, h, <span class="nm">0</span>, GL_RGBA, GL_UNSIGNED_BYTE, data);
+<span class="fn">glGenerateMipmap</span>(GL_TEXTURE_2D);
+<span class="fn">stbi_image_free</span>(data);</pre>
+        </div>
+    </div>
+
+    <!-- 35. CAMPUR WARNA + TEXTURE -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Fragment Shader Lanjutan</div>
+            <h2 class="slide-heading">Campur <span class="accent">Tekstur &amp; Warna</span></h2>
+            <div class="grid-2">
+                <div class="card">
+                    <span class="tag">Fragment Shader</span>
+                    <pre class="code"><span class="kw">#version</span> <span class="nm">330</span> core
+<span class="kw">out</span> <span class="kw">vec4</span> FragColor;
+<span class="kw">in</span> <span class="kw">vec3</span> color;
+<span class="kw">in</span> <span class="kw">vec2</span> TexCoord;
+<span class="kw">uniform</span> <span class="kw">sampler2D</span> myTexture;
+<span class="kw">void</span> <span class="fn">main</span>() {
+    <span class="cm">// tekstur × warna vertex</span>
+    FragColor = <span class="fn">texture</span>(myTexture, TexCoord)
+        * <span class="fn">vec4</span>(color.x, color.y, color.z, <span class="nm">1.0</span>);
+}</pre>
+                </div>
+                <div class="left">
+                    <ul class="ticks">
+                        <li>Vertex attrib: <b>0</b>=posisi, <b>1</b>=warna, <b>2</b>=texcoord</li>
+                        <li>Stride <b>8 * sizeof(float)</b></li>
+                        <li>Bind texture di render loop: <b>glBindTexture(GL_TEXTURE_2D, texture)</b></li>
+                        <li>Untuk gabung &gt;1 tekstur: gunakan multiple texture unit</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 36. RINGKASAN CHEAT SHEET -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Cheat Sheet UTS</div>
+            <h2 class="slide-heading">Ingat <span class="accent">Urutan Ini</span></h2>
+            <pre class="code" style="max-width:1000px;">VAO  →  VBO  →  EBO        <span class="cm">// urutan bind: VAO dulu, baru VBO/EBO</span>
+shader:  create → source → compile → program → attach → link → delete
+attrib:  glVertexAttribPointer → glEnableVertexAttribArray (0,1,2)
+draw:    glUseProgram → glBindVertexArray → glDrawArrays / glDrawElements
+cleanup: glDeleteVertexArrays, glDeleteBuffers, glDeleteProgram</pre>
+            <div class="grid-3" style="margin-top:10px;">
+                <div class="card card-green"><h3>EBO</h3><p>Menghemat vertex: 4 titik untuk kotak (2 segitiga).</p></div>
+                <div class="card card-amber"><h3>Uniform</h3><p>Data global ke shader: glGetUniformLocation + glUniform4f.</p></div>
+                <div class="card"><h3>Texture</h3><p>UV mapping → wrapping → filtering → mipmap.</p></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 37. CLOSING -->
+    <div class="slide">
+        <div class="slide-content">
+            <div class="eyebrow">Terima Kasih</div>
+            <h1 class="slide-title">Semangat UTS! 🚀</h1>
+            <p class="subtitle">Sumber: learnopengl.com · khronos.org/opengl · antongerdelan.net/opengl<br>Gordon &amp; Clevenger (2019) · Narayanan, Demystifying AR</p>
+            <div class="badge" style="margin-top:14px;">Gunakan ← → atau klik untuk navigasi</div>
+        </div>
+    </div>
+
+</div><!-- /.slide-deck -->
+
+<div class="nav-controls">
+    <button class="nav-btn" onclick="prevSlide()">←</button>
+    <span class="slide-counter"><span id="current">1</span> / <span id="total">37</span></span>
+    <button class="nav-btn" onclick="nextSlide()">→</button>
+</div>
+
+<script>
+let current = 1;
+const total = document.querySelectorAll('.slide').length;
+document.getElementById('total').textContent = total;
+
+function showSlide(n) {
+    if (n < 1) n = 1;
+    if (n > total) n = total;
+    current = n;
+    document.querySelectorAll('.slide').forEach((s, i) => {
+        s.classList.toggle('active', i === n - 1);
+    });
+    document.getElementById('current').textContent = n;
+    document.getElementById('progressBar').style.width = (n / total * 100) + '%';
+}
+function nextSlide() { showSlide(current + 1); }
+function prevSlide() { showSlide(current - 1); }
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextSlide(); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); prevSlide(); }
+    if (e.key === 'Home') { showSlide(1); }
+    if (e.key === 'End') { showSlide(total); }
+});
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.nav-controls')) nextSlide();
+});
+
+// Mipmap chart: ukuran tekstur per level (256 → 1)
+new Chart(document.getElementById('mipmapChart'), {
+    type: 'bar',
+    data: {
+        labels: ['L0', 'L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'L8'],
+        datasets: [{
+            label: 'Ukuran tekstur (px)',
+            data: [256, 128, 64, 32, 16, 8, 4, 2, 1],
+            backgroundColor: 'rgba(79,140,255,0.55)',
+            borderColor: '#22D3EE',
+            borderWidth: 1.5,
+            borderRadius: 6
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            title: { display: true, text: 'Chain Mipmap: tiap level ½', color: '#E8ECF7', font: { size: 13 } }
+        },
+        scales: {
+            x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8B95B2' } },
+            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8B95B2' }, type: 'logarithmic' }
+        }
+    }
+});
+
+showSlide(1);
+</script>
+</body>
+</html>
